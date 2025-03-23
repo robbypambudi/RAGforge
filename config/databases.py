@@ -22,15 +22,24 @@ class DB:
     def create_session(self):
         self.session = sessionmaker(bind=self.engine)()
     
+    def transaction(self, func):
+        try:
+            func()
+            self.session.commit()
+        except:
+            self.session.rollback()
+            raise
+        finally:
+            self.session.close()
+    
     def connect(self):
         try:
             self.create_engine()
             self.create_session()
+            logger.info("Connected to database")
         except:
             logger.error("Failed to connect to database")
             raise
-        else:
-            logger.info("Connected to database")
             
             
             

@@ -1,3 +1,4 @@
+from config.databases import DB
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,12 @@ class Server:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+        self.db = DB()
+    
+    def configure(self):
+        self.db.connect()
+
         
     def run(self):
+        self.configure()
         uvicorn.run(self.app, host="0.0.0.0", port=8000)
