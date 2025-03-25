@@ -40,6 +40,10 @@ class DB:
         except:
             logger.error("Failed to connect to database")
             raise
+    
+    def __call__(self, *args, **kwds):
+        self.connect()
+        return self.session
             
             
             

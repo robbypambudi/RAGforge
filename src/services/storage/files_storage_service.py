@@ -1,38 +1,15 @@
 import os
 import aiofiles
+from src.repositories.file_repository import FileRepository
 from src.constants import DOCUMENT_PATH
 
 class FileStorageService:
-    _relative_path = DOCUMENT_PATH
+    _file_repository: FileRepository
     
-    def __init__(self) -> None:
-        pass
-    
-    async def save(self, title, file):
-        # Remove extension from file name
-        if title.endswith('.pdf'):
-            folderName = title[:-4]
-        else:
-            folderName = title
+    def __init__(self, file_repository: FileRepository) -> None:
+        self._file_repository = file_repository
         
-        # Full path to the folder
-        folderPath = os.path.join(self._relative_path, folderName)
+    async def get_files(self):
+        return await self._file_repository.get_files()
         
-        # Check if folder exists
-        if not os.path.exists(folderPath):
-            os.makedirs(folderPath)
-        else:
-            print(f"Folder {folderName} already exists")
-            raise FileExistsError(f"Folder {folderName} already exists")
-        
-        # Save the file
-        filePath = os.path.join(folderPath, file.filename)
-        
-        # Write the file content to the specified path
-        async with aiofiles.open(filePath, 'wb') as f:
-            await f.write(file.read())
-            
-        return filePath
-    
-    
         
