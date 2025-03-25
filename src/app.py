@@ -1,13 +1,42 @@
-from src.server import Server
+from config.databases import DB
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_huggingface import HuggingFaceEmbeddings
+from src.services.embedding.EmbeddingModel import EmbeddingModel
+from src.services.storage.files_storage_service import FileStorageService
+from src.constants import EMBED_MODEL_NAME
 
 class App:
     def __init__(self):
-        self.name = "Chatbot API"
-        self.version = "1.0.0"
-        self.author = "robby.pambudi10@gmail.com"
-        self.server = Server()
+        self.app = FastAPI()
+        self.db = DB()
+        
+    def __middleware__(self):
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    
+    def configure(self):
+        self.__middleware__()
+        self.db.connect()
+        
+        files_db_service = FileStorageService()
+        
+        embedding_model = EmbeddingModel(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'},
+            encode_kwargs={'padding': True, 'max_length': 512}
+        )()
+        
+        
         
     def run(self):
-        print(f"{self.name} {self.version} by {self.author}")
-        self.server.run()
+        self.configure()
+        uvicorn.run(self.app, host="0.0.0.0", port=8000)
+        
         
