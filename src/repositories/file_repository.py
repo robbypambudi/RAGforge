@@ -9,3 +9,6 @@ class FileRepository:
         
     def get_files(self):
         return self.db.query(Files).all()
+    
+    def get_all_files(self):
+        return self.db.query(Files).all()

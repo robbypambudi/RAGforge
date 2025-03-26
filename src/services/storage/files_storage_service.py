@@ -9,7 +9,11 @@ class FileStorageService:
     def __init__(self, file_repository: FileRepository) -> None:
         self._file_repository = file_repository
         
-    async def get_files(self):
-        return await self._file_repository.get_files()
+    def get_files(self):
+        return self._file_repository.get_files()
+    
+    def get_all_files(self):
+        return self._file_repository.get_all_files()
+    
         
         
