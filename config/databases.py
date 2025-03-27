@@ -44,7 +44,12 @@ class DB:
         try:
             self.create_engine()
             self.create_session()
-            logger.info("Connected to " + self.url)
+            
+            if self.session:
+                logger.info("Database connected")
+            else:
+                logger.error("Failed to connect to database")
+                raise
         except:
             logger.error("Failed to connect to database")
             raise
