@@ -13,12 +13,11 @@ class EmbeddingService:
   def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService):
     self.embedding_model = embedding_model
     self.file_storage_service = file_storage_service
-    self.pdf_loader = PyPDFLoader()
     
     self.text_splitter = self._initialize_text_splitter()
     
     self.initialize_with_preprocessed_documents()
-    
+        
 
   def _initialize_text_splitter(self) -> RecursiveCharacterTextSplitter:
     return RecursiveCharacterTextSplitter(
@@ -27,7 +26,7 @@ class EmbeddingService:
     )
     
   def load_and_split_document(self, path: str) -> List[Document]:
-    document = self.pdf_loader.load_document(path)
+    document = PyPDFLoader(path).load()
     return self.text_splitter.split_documents(document)
   
   def split_text(self, splitted_document: Document) -> List[str]:
@@ -54,6 +53,6 @@ class EmbeddingService:
       print(e)
       return False
       
-  def initialize_with_preprocessed_documents(self, path: str):
+  def initialize_with_preprocessed_documents(self):
     files = self.file_storage_service.get_all_files()
     print(files)

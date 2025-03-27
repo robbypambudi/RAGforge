@@ -5,7 +5,7 @@ import logging
 
 import torch
 
-from models import EmbeddingModel
+from src.models import EmbeddingModel
 from src.services.storage.files_storage_service import FileStorageService
 from src.constants import BASE_KNOWLEDGE_DOCUMENT_PATH
 

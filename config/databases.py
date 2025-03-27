@@ -7,17 +7,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DB:
-    def __init__(self, type ='postgresql', host = 'localhost', port = '5432'):
+    def __init__(self, type ='postgresql', host = 'localhost', port = '5432', user = 'aws-0-ap-southeast-1.pooler.supabase.com', password = None, database: str = None):
         self.type = type
         self.host = host
         self.port = port
+        self.user = user
+        self.password = password
+        self.database = database
         self.engine = None
         self.session = None
         
+        self.connect()
+        
+        
     def create_engine(self):
-        self.engine = create_engine(
-            f"{self.type}://{self.host}:{self.port}"
-        )
+        url = f"{self.type}://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        self.engine = create_engine(url)
         
     def create_session(self):
         self.session = sessionmaker(bind=self.engine)()
@@ -31,19 +36,18 @@ class DB:
             raise
         finally:
             self.session.close()
-    
+            
+    def query(self, query):
+        return self.session.execute(query)
+
     def connect(self):
         try:
             self.create_engine()
             self.create_session()
-            logger.info("Connected to database")
+            logger.info("Connected to " + self.url)
         except:
             logger.error("Failed to connect to database")
             raise
-    
-    def __call__(self, *args, **kwds):
-        self.connect()
-        return self.session
             
             
             
