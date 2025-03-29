@@ -13,5 +13,12 @@ class FileStorageService:
     def get_all_files(self):
         return self.file_repository.get_all_files()
     
+    def save_file(self, name: str, path: str, description: str, metadatas: str) -> bool:
+        try:
+            return self.file_repository.save(name=name, path=path, description=description, metadatas=metadatas)
+        except Exception as e:
+            print(e)
+            return False
+        
         
         

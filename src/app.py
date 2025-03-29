@@ -49,7 +49,7 @@ class App:
         file_storage_service = FileStorageService(file_repository=file_repository)
         embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service)
 
-        vectorstore_service = VectorstoreService(embedding_model=embedding_model, file_storage_service=file_storage_service)
+        # vectorstore_service = VectorstoreService(embedding_model=embedding_model, file_storage_service=file_storage_service)
         
         # Repository        
         

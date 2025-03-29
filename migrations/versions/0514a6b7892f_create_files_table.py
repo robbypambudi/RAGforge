@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column('name', sa.String(), nullable=False),
         sa.Column('path', sa.String(), nullable=False),
         sa.Column('description', sa.String(), nullable=False),
-        sa.Column('metadatas', sa.String(), nullable=False),
+        sa.Column('metadatas', sa.JSON(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
