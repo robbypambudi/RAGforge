@@ -4,6 +4,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_huggingface import HuggingFaceEmbeddings
+from src.controllers.files_controller import FilesController
 from src.services.rag.chain_service import ChainService
 from src.services.chroma.chroma_service import ChromaService
 from src.services.rag.vectorstore_service import VectorStoreService
@@ -13,6 +14,10 @@ from src.services.storage.files_storage_service import FileStorageService
 from src.services.rag.memorystore_service import MemorystoreService
 
 from src.services.embedding.embedding_service import EmbeddingService
+from src.routes import RoutesRegister
+
+from src.routes.files_route import filesRoute
+
 class App:
     def __init__(self):
         self.app = FastAPI()
@@ -56,7 +61,16 @@ class App:
         chain_service = ChainService(file_storage_service=file_storage_service, vectorstore_service=vectorstore_service)
         memorystore_service = MemorystoreService()
         
-        # Routes 
+        # Controller
+        files_controller = FilesController(
+            file_storage_service=file_storage_service,
+            embedding_service=embedding_service,
+            vectorstore_service=vectorstore_service,
+        )
+        
+        # Routes
+        routes = RoutesRegister(app=self.app)
+        routes.register_routes(routes=filesRoute(controller=files_controller))
         
     def run(self):
         self.configure()
