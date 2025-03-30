@@ -14,8 +14,7 @@ from src.services.storage.files_storage_service import FileStorageService
 class EmbeddingService:
   def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService):
     self.embedding_model = embedding_model
-    self.file_storage_service = file_storage_service
-    
+    self.file_storage_service = file_storage_service    
     self.text_splitter = self._initialize_text_splitter()
     
     self.initialize_with_preprocessed_documents()

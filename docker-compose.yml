@@ -15,6 +15,23 @@ services:
     networks:
       - my_network
 
+  chromadb:
+    image: chromadb/chroma:0.6.3
+    volumes:
+      - ./chromadb:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma # this is the default path, change it as needed
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-TRUE}
+    ports:
+      - 8000:8000
+    networks:
+      - my_network
+    depends_on:
+      - db
+    restart: always
+    
+
 volumes:
   postgres_data:
 
