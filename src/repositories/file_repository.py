@@ -1,4 +1,5 @@
-
+import os
+from fastapi import File
 from sqlalchemy import select
 from src.entities.files import Files
 
@@ -35,3 +36,19 @@ class FileRepository:
         except Exception as e:
             print(e)
             return False
+    
+    def save_file_to_local(self, file, full_path) -> str:
+    
+        if os.path.exists(full_path):
+            raise ValueError(f"Path {full_path} already exists")
+        
+        # Save the file
+        with open(full_path, "wb") as f:
+            f.write(file.file.read())
+            
+        # Close the file
+        return full_path
+    
+        
+            
+        

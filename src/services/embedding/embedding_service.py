@@ -58,8 +58,9 @@ class EmbeddingService:
   def initialize_with_preprocessed_documents(self):
     # Retrieve database file paths
     db_files = self.file_storage_service.get_all_files()
-    db_file_paths = [file[0].metadatas for file in db_files]
-    
+    print("db_files", db_files)
+    return
+   
 
     # Define documents folder and gather subdirectories containing preprocessed documents
     documents_dir = Path("documents")
@@ -72,7 +73,7 @@ class EmbeddingService:
         # Look for .txt and .pdf files in the directory
         pdf_files = list(preproc_dir.glob("*.pdf"))
         
-        if str(pdf_files) not in [metadata["source"] for metadata in db_file_paths]: 
+        if str(pdf_files) not in [file["metadatas"]["source"] for file in db_files]: 
             print(f"Skipping {preproc_dir.name} as it is already in the database")
             continue
         

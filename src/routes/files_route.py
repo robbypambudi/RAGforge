@@ -10,5 +10,10 @@ def filesRoute(controller: FilesController) -> List[HandlerRequestType]:
       method=Method.GET.value,
       path="/files",
       handler=controller.get_files,
+    ),
+    HandlerRequestType(
+      method=Method.POST.value,
+      path="/files",
+      handler=controller.upload_file,
     )
   ]
