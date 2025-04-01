@@ -55,7 +55,7 @@ class QuestionsController(ResponseHandler):
       print(f"Answer: {answer}")
       self.memorystore_service.add_ai_message(payload.id, answer)
       
-      return self.success(data="answer", message="Answer successfully retrieved.")
+      return self.success(data=answer, status_code=200)
     except Exception as e:
       logger.error(f"Error in ask_without_stream: {e}")
       return self.error(message="An error occurred while processing your request.", status_code=500)

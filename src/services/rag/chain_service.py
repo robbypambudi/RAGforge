@@ -50,6 +50,7 @@ class ChainService:
       model="gpt-3.5-turbo",
       temperature=0.5,
       streaming=is_stream,
+      
       api_key="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",
     )
     
@@ -62,6 +63,7 @@ class ChainService:
       | self._init_llm(is_stream=is_stream)
       | StrOutputParser()
     )
+    print("Chain:", chain)
     
     return chain
     
