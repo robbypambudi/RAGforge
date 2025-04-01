@@ -50,6 +50,7 @@ class ChainService:
       model="gpt-3.5-turbo",
       temperature=0.5,
       streaming=is_stream,
+      api_key="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",
     )
     
   def get_chain(self, is_stream: bool, is_output_html: bool = False):
@@ -74,9 +75,9 @@ class ChainService:
     ) if docs else "Tidak ada informasi yang ditemukan."
     
   def get_context(self, question, memorystore):
-    context = self.vector_store_service.similarity_search(question)
-    print(f"Context: {context}")
+    context = self.vectorstore_service.similarity_search(question)
     return {
       "context": [HumanMessage(content=self._format_docs(context))],
       "message": memorystore.messages,
     }
+  

@@ -1,6 +1,6 @@
 from langchain.memory import ChatMessageHistory
 
-class MemorystoreService:
+class MemorystoreRepository:
     """
     A class to manage the memorystore for RAG (Retrieval-Augmented Generation) applications.
     """
