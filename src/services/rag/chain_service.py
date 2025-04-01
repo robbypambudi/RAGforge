@@ -62,9 +62,7 @@ class ChainService:
       self._init_prompt(is_output_html=is_output_html)
       | self._init_llm(is_stream=is_stream)
       | StrOutputParser()
-    )
-    print("Chain:", chain)
-    
+    )    
     return chain
     
   @staticmethod
@@ -75,11 +73,34 @@ class ChainService:
     return "\n\n".join(
       doc.page_content for doc in docs
     ) if docs else "Tidak ada informasi yang ditemukan."
-    
-  def get_context(self, question, memorystore):
-    context = self.vectorstore_service.similarity_search(question)
-    return {
-      "context": [HumanMessage(content=self._format_docs(context))],
-      "message": memorystore.messages,
-    }
   
+  def format_references(self, docs):
+    """
+    Format and deduplicate document references, returning a list.
+    """
+    if not docs:
+        return []
+    
+    seen_sources = set()
+    references = []
+    for doc in docs:
+        source = doc.metadata.get("source", "Unknown source")
+        if source not in seen_sources:
+            seen_sources.add(source)
+            references.append(source)
+    return references
+  
+  def get_context(self, question, memorystore):
+    try :
+      # Ambil context dari vectorstore
+      docs = self.vectorstore_service.similarity_search(question)
+      
+      formatted_docs = self._format_docs(docs)
+      return {
+        "context": [HumanMessage(content=formatted_docs)],
+        "message": memorystore.messages,
+      }, docs
+    except Exception as e:
+      exception_message = str(e)
+      print(f"Error in get_context: {exception_message}")
+      raise Exception(f"Error in get_context: {exception_message}")

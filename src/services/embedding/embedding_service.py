@@ -58,9 +58,10 @@ class EmbeddingService:
   def initialize_with_preprocessed_documents(self):
     # Retrieve database file paths
     db_files = self.file_storage_service.get_all_files()
-    print("db_files", db_files)
-    return
-   
+    
+    if not db_files:
+        print("No files found in the database.")
+        return
 
     # Define documents folder and gather subdirectories containing preprocessed documents
     documents_dir = Path("documents")

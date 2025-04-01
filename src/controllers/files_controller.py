@@ -72,7 +72,17 @@ class FilesController(ResponseHandler):
         metadatas=metadatas
       )
       
-      return self.success(data=file_path, message="File uploaded successfully", status_code=200)
+      return self.success(data={
+        "file_path": file_path,
+        "info":{
+          "name": filename,
+          "description": description,
+          "metadatas": metadatas,
+          "chunks": len(splitted_document),
+          },
+        },
+        message="File uploaded successfully", status_code=200
+      )
       
     except ValueError as e:
       return self.error(message=str(e), status_code=400)

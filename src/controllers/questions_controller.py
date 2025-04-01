@@ -47,15 +47,32 @@ class QuestionsController(ResponseHandler):
     """    
     
     try:
+      # Tambahkan pesan pengguna ke memory store
       self.memorystore_service.add_user_message(payload.id, payload.question)
       memorystore = self.memorystore_service.get_memory_by_chat_id(payload.id)
-      context = self.chain_service.get_context(payload.question, memorystore)
-      print(f"Context: {context}")
-      answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
-      print(f"Answer: {answer}")
-      self.memorystore_service.add_ai_message(payload.id, answer)
       
-      return self.success(data=answer, status_code=200)
+      # Dapatkan context dan dokumen referensi
+      context, references = self.chain_service.get_context(payload.question, memorystore)
+      
+      # Ambil chain dan dapatkan jawaban dari LL
+      
+      answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
+      
+      # Ambil dokumen referensi yang disertakan pada context
+      reference_documents = context.get("docs", [])
+      reference_documents = self.chain_service.format_references(references)
+            
+      # Simpan jawaban AI ke dalam memory store
+      self.memorystore_service.add_ai_message(payload.id, reference_documents)
+            
+      return self.success(
+        data={
+          "answer": answer,
+          "references": reference_documents,
+        }, 
+        status_code=200
+      )
+
     except Exception as e:
       logger.error(f"Error in ask_without_stream: {e}")
       return self.error(message="An error occurred while processing your request.", status_code=500)

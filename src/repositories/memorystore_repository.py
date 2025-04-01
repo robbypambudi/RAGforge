@@ -1,4 +1,4 @@
-from langchain.memory import ChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 class MemorystoreRepository:
     """
