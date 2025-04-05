@@ -9,12 +9,14 @@ from src.models.EmbeddingModel import EmbeddingModel
 from src.controllers.files_controller import FilesController
 from src.controllers.questions_controller import QuestionsController
 
+from src.repositories.file_repository import FileRepository
+from src.repositories.memorystore_repository import MemorystoreRepository
+
+from src.services.rag.memorystore_service import MemorystoreService
 from src.services.rag.chain_service import ChainService
 from src.services.chroma.chroma_service import ChromaService
 from src.services.rag.vectorstore_service import VectorStoreService
-from src.repositories.file_repository import FileRepository
 from src.services.storage.files_storage_service import FileStorageService
-from src.repositories.memorystore_repository import MemorystoreRepository
 from src.services.api.questions_service import QuestionsService
 
 from src.services.embedding.embedding_service import EmbeddingService
@@ -55,12 +57,13 @@ class App:
         
         # Initialize the repository
         file_repository = FileRepository(db=self.db)
-        memorystore_service = MemorystoreRepository()
+        memorystore_repository = MemorystoreRepository()
         
         # Intialize the services
         # chroma_service = ChromaService(host="localhost", port=8000, collection_name="my_collection")
         file_storage_service = FileStorageService(file_repository=file_repository)
         embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service)
+        memorystore_service = MemorystoreService(memorystore_repository=memorystore_repository)
 
         vectorstore_service = VectorStoreService(embedding_model=embedding_model, file_storage_service=file_storage_service, top_k=8)
         chain_service = ChainService(file_storage_service=file_storage_service, vectorstore_service=vectorstore_service)

@@ -1,11 +1,11 @@
-from src.repositories.memorystore_repository import MemorystoreRepository
+from src.services.rag.memorystore_service import MemorystoreService
 from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.rag.chain_service import ChainService
 
 
 class QuestionsService:
   
-  def __init__(self, memorystore_service: MemorystoreRepository, vectorstore_service: VectorStoreService, chain_service: ChainService):
+  def __init__(self, memorystore_service: MemorystoreService, vectorstore_service: VectorStoreService, chain_service: ChainService):
     self.memorystore_service = memorystore_service
     self.vectorstore_service = vectorstore_service
     self.chain_service = chain_service
@@ -16,10 +16,9 @@ class QuestionsService:
     """
     try:
       # Call the chain service with the question
-      memorystore = self.memorystore_service.get_memory_by_chat_id(question_id)
+      memorystore = self.memorystore_service.get_memory(question_id)
       
       context = self.chain_service.get_context(question, memorystore)
-      print(f"Context: {context}")
       
       # Call the chain service with the question
       chain_gen = self.chain_service.get_chain(is_stream=True, is_output_html=False).astream(context)
