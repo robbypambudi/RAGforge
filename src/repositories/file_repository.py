@@ -17,7 +17,6 @@ class FileRepository:
             result = self.db.session.execute(stmt).all()
             return result
         except Exception as e:
-            print(e)
             return []
         
     
@@ -34,7 +33,6 @@ class FileRepository:
             )
             return True
         except Exception as e:
-            print(e)
             return False
     
     def save_file_to_local(self, file, full_path) -> str:

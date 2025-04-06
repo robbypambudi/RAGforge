@@ -34,7 +34,6 @@ class QuestionsService:
       self.memorystore_service.add_ai_message(question_id, accumulated_answer)
           
     except Exception as e:
-      print(f"Error in ask_with_stream: {e}")
       yield "An error occurred while processing your request."
       # Handle the error appropriately
       

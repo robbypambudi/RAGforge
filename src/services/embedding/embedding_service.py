@@ -11,6 +11,12 @@ from langchain_community.vectorstores import FAISS
 from src.models import EmbeddingModel
 from src.services.storage.files_storage_service import FileStorageService
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 class EmbeddingService:
   def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService):
     self.embedding_model = embedding_model
@@ -51,7 +57,6 @@ class EmbeddingService:
       embedded_documents.save_local(path)
       return True
     except Exception as e:
-      print(e)
       return False
     
   
@@ -60,7 +65,7 @@ class EmbeddingService:
     db_files = self.file_storage_service.get_all_files()
     
     if not db_files:
-        print("No files found in the database.")
+        logger.warning("No files found in the database")
         return
 
     # Define documents folder and gather subdirectories containing preprocessed documents
@@ -68,14 +73,18 @@ class EmbeddingService:
     preproc_dirs = [d for d in documents_dir.iterdir() 
                     if d.is_dir() and d.name.startswith("preproc_")]
 
-    print(f"Found {len(preproc_dirs)} preprocessing directories")
+    logger.info(f"Found {len(preproc_dirs)} preprocessed directories")
+    if not preproc_dirs:
+        logger.warning("No preprocessed directories found")
+        return
+      
     for preproc_dir in preproc_dirs:     
         
         # Look for .txt and .pdf files in the directory
         pdf_files = list(preproc_dir.glob("*.pdf"))
         
         if str(pdf_files) not in [file["metadatas"]["source"] for file in db_files]: 
-            print(f"Skipping {preproc_dir.name} as it is already in the database")
+            logger.warning(f"{preproc_dir.name} is not in the database")
             continue
         
         if not pdf_files:
@@ -92,7 +101,8 @@ class EmbeddingService:
             # Save the embeddings if the file does not already exist
             embedding_path = str(file.with_suffix('')) 
             if Path(embedding_path).exists():
-                print(f"Embeddings for {file.name} already exist, skipping save.")
+                logger.warning(f"File {embedding_path} already exists")
+                continue
             else:
                 if not self.save_embeddings(embedded_documents, embedding_path):
                     raise ValueError(f"Failed to save {file.name}")
@@ -105,7 +115,7 @@ class EmbeddingService:
                 metadatas={"source": str(file)}
             ):
                 raise ValueError(f"Failed to save {file.name} to the database")
-            print(f"Processed {file.name} and saved to the database")
+            logger.info(f"File {file.name} saved successfully")
     
     
     

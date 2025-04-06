@@ -69,7 +69,7 @@ class VectorStoreService:
             raise ValueError("No files found in the database")
         
         for file in files:
-            print(f"Loading file {file['path']}...")
+            logging.info(f"Loading vector store from {file['path']}")
             self.add_vector_store(file['path'])
     
     def similarity_search(self, query: str, k: int = 8) -> List[Files]:

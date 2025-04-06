@@ -27,7 +27,6 @@ class HistoriesController():
         """
         Get memory by chat id
         """
-        print(chat_id)
         try:
             memory = self.memorystore_service.get_memory(chat_id)
             return {

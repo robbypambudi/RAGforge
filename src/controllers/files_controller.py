@@ -24,7 +24,6 @@ class FilesController(ResponseHandler):
     Get all files
     """
     files = self.file_storage_service.get_all_files()
-    print("files", files)
     
     if not files:
       return self.success(data=[], message="No files found", status_code=200)
@@ -59,9 +58,7 @@ class FilesController(ResponseHandler):
       embedded_documents = self.embedding_service.embed_documents(splitted_document)
       if not embedded_documents:
         raise Exception("Failed to embed documents")
-      
-      print("dir_path", dir_path)
-      
+            
       self.embedding_service.save_embeddings(embedded_documents, dir_path)
       self.vectorstore_service.add_vector_store(dir_path)
       
