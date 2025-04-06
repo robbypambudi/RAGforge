@@ -50,23 +50,18 @@ class QuestionsController(ResponseHandler):
       memorystore = self.memorystore_service.get_memory(payload.id)
       
       # Dapatkan context dan dokumen referensi
-      context, references = self.chain_service.get_context(payload.question, memorystore)
+      context = self.chain_service.get_context(payload.question, memorystore)
       
       # Ambil chain dan dapatkan jawaban dari LL
       
       answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
-      
-      # Ambil dokumen referensi yang disertakan pada context
-      reference_documents = context.get("docs", [])
-      reference_documents = self.chain_service.format_references(references)
             
       # Simpan jawaban AI ke dalam memory store
-      self.memorystore_service.add_ai_message(payload.id, reference_documents)
+      self.memorystore_service.add_ai_message(payload.id, answer)
             
       return self.success(
         data={
           "answer": answer,
-          "references": reference_documents,
         }, 
         status_code=200
       )

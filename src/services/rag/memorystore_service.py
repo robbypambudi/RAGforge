@@ -41,7 +41,7 @@ class MemorystoreService():
     Returns:
         str: The conversation history as a string.
     """
-    return self.memorystore_repository.get_memory(chat_id).get_buffer_string()
+    return self.memorystore_repository.get_memory(chat_id)
   
   def delete_memory(self, chat_id: str) -> None:
     """
@@ -57,3 +57,12 @@ class MemorystoreService():
     Clear all memories.
     """
     self.memorystore_repository.clear_memory()
+    
+  def get_all_histories(self) -> list:
+    """
+    Get all histories from the memory store.
+    
+    Returns:
+        list: A list of all conversation histories.
+    """
+    return self.memorystore_repository.get_all_histories()

@@ -1,13 +1,20 @@
 from config.databases import DB
 import uvicorn
 import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.requests import Request
+from fastapi.exception_handlers import http_exception_handler
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from langchain_huggingface import HuggingFaceEmbeddings
 from src.models.EmbeddingModel import EmbeddingModel
 
 from src.controllers.files_controller import FilesController
 from src.controllers.questions_controller import QuestionsController
+from src.controllers.histories_controller import HistoriesController
 
 from src.repositories.file_repository import FileRepository
 from src.repositories.memorystore_repository import MemorystoreRepository
@@ -24,6 +31,8 @@ from src.routes import RoutesRegister
 
 from src.routes.files_route import filesRoute
 from src.routes.questions_route import questionsRoute
+from src.routes.histories_route import historiesRoute
+
 class App:
     def __init__(self):
         self.app = FastAPI()
@@ -81,14 +90,27 @@ class App:
             memorystore_service=memorystore_service,
             questions_service=questions_service
         )
+        histories_controller = HistoriesController(
+            memorystore_service=memorystore_service,
+        )
         
         # Routes
         routes = RoutesRegister(app=self.app)
-        routes.register_routes(routes=filesRoute(controller=files_controller))
-        routes.register_routes(routes=questionsRoute(controller=questions_controller))
+        routes.register_routes(filesRoute(controller=files_controller))
+        routes.register_routes(questionsRoute(controller=questions_controller))
+        routes.register_routes(historiesRoute(controller=histories_controller))
+
+        # Custom 404 handler
+        @self.app.exception_handler(StarletteHTTPException)
+        async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+            if exc.status_code == 404:
+                return JSONResponse(
+                    status_code=404,
+                    content={"detail": "This route does not exist.",
+                             "status": "error"},
+                )
+            return await http_exception_handler(request, exc)
         
     def run(self):
         self.configure()
         uvicorn.run(self.app, host="0.0.0.0", port=8000)
-        
-        

@@ -7,4 +7,25 @@ def historiesRoute(controller: HistoriesController):
   """
   Register route of histories
   """
-  pass
+  return [
+    HandlerRequestType(
+      method=Method.GET.value,
+      path="/histories",
+      handler=controller.get_all,
+    ),
+    # HandlerRequestType(
+    #   method=Method.DELETE.value,
+    #   path="/histories",
+    #   handler=controller.clear_memory,
+    # ),
+    # HandlerRequestType(
+    #   method=Method.DELETE.value,
+    #   path="/histories/{chat_id}",
+    #   handler=controller.delete_memory,
+    # ),
+    HandlerRequestType(
+      method=Method.GET.value,
+      path="/histories/{chat_id}",
+      handler=controller.get_memory_by_id,
+    ),
+  ]

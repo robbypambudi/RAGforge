@@ -99,7 +99,7 @@ class ChainService:
       return {
         "context": [HumanMessage(content=formatted_docs)],
         "message": memorystore.messages,
-      }, docs
+      }
     except Exception as e:
       exception_message = str(e)
       print(f"Error in get_context: {exception_message}")

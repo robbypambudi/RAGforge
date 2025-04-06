@@ -48,5 +48,26 @@ class MemorystoreRepository:
         Clear all memories.
         """
         self.memorystore.clear()
+    
+    def get_all_histories(self) -> list:
+        """
+        Get all histories from the memory store.
+
+        Returns:
+            list: A list of all conversation histories with their IDs.
+        """
+        return [
+            {
+                "chat_id": chat_id,
+                "history": history.messages
+            }
+            for chat_id, history in self.memorystore.items()
+        ]
+    
+    def get_all_histories_as_dict(self) -> dict:
+        """
+        Get all histories from the memory store as a dictionary.
+        """
+        return {chat_id: history.messages for chat_id, history in self.memorystore.items()}
         
     
