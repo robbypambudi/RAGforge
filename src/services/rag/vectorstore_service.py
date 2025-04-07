@@ -82,6 +82,7 @@ class VectorStoreService:
     
     def get_chunks_by_filename(self, filename: str):
         vector_dict = self.vector_store.docstore._dict
+        print(vector_dict)
         chunks_id = []
         
         for id in vector_dict.keys():

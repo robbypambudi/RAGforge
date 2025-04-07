@@ -63,7 +63,7 @@ class EmbeddingService:
   def initialize_with_preprocessed_documents(self):
     # Retrieve database file paths
     db_files = self.file_storage_service.get_all_files()
-    
+
     if not db_files:
         logger.warning("No files found in the database")
         return

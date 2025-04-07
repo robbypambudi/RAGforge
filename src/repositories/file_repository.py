@@ -10,7 +10,7 @@ class FileRepository:
     def __init__ (self, db: DB):
         self.db = db
     
-    def get_all_files(self):
+    def get_all_files(self) -> list:
         try:
             # Select all files from the database
             stmt = select(Files)
@@ -46,6 +46,30 @@ class FileRepository:
             
         # Close the file
         return full_path
+
+    def get_file_by_id(self, file_id: str) -> Files:
+        """
+        Get a file by its ID
+        """
+        try:
+            stmt = select(Files).where(Files.id == file_id)
+            result = self.db.session.execute(stmt).scalar_one_or_none()
+            return result
+        except Exception as e:
+            return None
+        
+    def delete_file(self, file_path: str) -> bool:
+        """
+        Delete a file
+        """
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return True
+            else:
+                raise ValueError(f"File {file_path} does not exist")
+        except Exception as e:
+            return False
     
         
             

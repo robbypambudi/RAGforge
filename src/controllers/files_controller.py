@@ -1,13 +1,18 @@
 
 import os
+import logging
+from typing import List
+
 from fastapi import File, Form, UploadFile
 from fastapi.responses import JSONResponse
+
 
 from src.lib.response_handler import ResponseHandler
 from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.embedding.embedding_service import EmbeddingService
 from src.services.storage.files_storage_service import FileStorageService
-import logging
+
+from src.types.files_request_type import DeleteFileRequestType
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -89,3 +94,20 @@ class FilesController(ResponseHandler):
       if self.file_storage_service.file_exists(file_path):
         self.file_storage_service.delete_file(file_path)
       return self.error(message="Failed to save file", status_code=500)
+
+  async def delete_file_with_knowledge(self, payload: DeleteFileRequestType) -> JSONResponse:
+      file = self.file_storage_service.verify_file_by_id_name(payload.file_id, payload.file_name)
+      
+      if not file:
+          return self.error(message="File not found", status_code=404)
+        
+      try:
+          # Delete the file from chunks
+          chunks: List[str] = self.vectorstore_service.get_chunks_by_filename(file.name)
+          
+          if not chunks:
+              return self.error(message="No chunks found for the file", status_code=404)
+        
+      except Exception as e:
+          logger.error(f"Error deleting file: {e}")
+          return self.error(message="Failed to delete file", status_code=500)

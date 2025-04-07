@@ -10,17 +10,18 @@ class FileStorageService:
         
     
     def get_all_files(self):
-        raw_files = []
         try:
             files = self.file_repository.get_all_files()
-            for file in files:
-                raw_files.append({
+            return [
+                {
+                    "id": file[0].id,
                     "name": file[0].name,
                     "path": file[0].path,
                     "description": file[0].description,
                     "metadatas": file[0].metadatas
-                })
-            return raw_files
+                }
+                for file in files
+            ]
         except Exception as e:
             print(e)
     
@@ -62,4 +63,22 @@ class FileStorageService:
         except Exception as e:
             print(e)
             return False
-        
+    
+    def verify_file_by_id_name(self, file_id: str, file_name: str):
+        """
+        Verify a file by its ID and name
+        """
+        try:
+            file = self.file_repository.get_file_by_id(file_id)
+            if not file:
+                raise ValueError(f"File with ID {file_id} does not exist")
+            
+            if file.name != file_name:
+                raise ValueError(f"File with ID {file_id} does not match name {file_name}")
+            
+            return file
+        except Exception as e:
+            print(e)
+            return None
+
+    

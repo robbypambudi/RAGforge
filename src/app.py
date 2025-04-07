@@ -33,6 +33,10 @@ from src.routes.files_route import filesRoute
 from src.routes.questions_route import questionsRoute
 from src.routes.histories_route import historiesRoute
 
+from src.logging_config import logger
+
+from src.exceptions import CustomException
+
 class App:
     def __init__(self):
         self.app = FastAPI()
@@ -99,7 +103,7 @@ class App:
         routes.register_routes(filesRoute(controller=files_controller))
         routes.register_routes(questionsRoute(controller=questions_controller))
         routes.register_routes(historiesRoute(controller=histories_controller))
-
+        
         # Custom 404 handler
         @self.app.exception_handler(StarletteHTTPException)
         async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -109,7 +113,11 @@ class App:
                     content={"detail": "This route does not exist.",
                              "status": "error"},
                 )
-            return await http_exception_handler(request, exc)
+            logger.error(f"Custom exception: {exc.detail}")
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail, "status": "error"},
+            )
         
     def run(self):
         self.configure()
