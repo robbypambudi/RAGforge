@@ -11,6 +11,7 @@ from src.lib.response_handler import ResponseHandler
 from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.embedding.embedding_service import EmbeddingService
 from src.services.storage.files_storage_service import FileStorageService
+from src.services.rag.memorystore_service import MemorystoreService
 
 from src.types.files_request_type import DeleteFileRequestType
 
@@ -19,10 +20,11 @@ logger = logging.getLogger(__name__)
 
 class FilesController(ResponseHandler):
 
-  def __init__(self, file_storage_service: FileStorageService, embedding_service: EmbeddingService, vectorstore_service: VectorStoreService ):
+  def __init__(self, file_storage_service: FileStorageService, embedding_service: EmbeddingService, vectorstore_service: VectorStoreService, memorystore_service: MemorystoreService ):
     self.file_storage_service = file_storage_service
     self.embedding_service = embedding_service
     self.vectorstore_service = vectorstore_service
+    self.memorystore_service = memorystore_service
   
   def get_files(self) -> JSONResponse:
     """
@@ -96,18 +98,38 @@ class FilesController(ResponseHandler):
       return self.error(message="Failed to save file", status_code=500)
 
   async def delete_file_with_knowledge(self, payload: DeleteFileRequestType) -> JSONResponse:
-      file = self.file_storage_service.verify_file_by_id_name(payload.file_id, payload.file_name)
-      
-      if not file:
-          return self.error(message="File not found", status_code=404)
-        
+      """
+      Delete a file by its ID and name
+      """
+
       try:
+          file = self.file_storage_service.verify_file_by_id_name(payload.file_id, payload.file_name)
+          
+          if not file:
+              return self.error(message="File not found", status_code=404)
           # Delete the file from chunks
           chunks: List[str] = self.vectorstore_service.get_chunks_by_filename(file.name)
           
           if not chunks:
               return self.error(message="No chunks found for the file", status_code=404)
-        
+          
+          self.file_storage_service.delete_directory(file.path)
+          self.file_storage_service.delete_file(file.id)
+          self.vectorstore_service.delete_document_by_chunks(chunks)
+          self.memorystore_service.clear_memory()
+          
+          return self.success(data={
+              "id": file.id,
+              "file": file.name,
+              "chunks": chunks
+          }, message="File deleted successfully", status_code=200)
+          
+      except ValueError as e:
+          logger.error(f"Error deleting file: {e}")
+          return self.error(message="File not found", status_code=404)
+      except FileNotFoundError as e:
+          logger.error(f"Error deleting file: {e}")
+          return self.error(message="File not found", status_code=404)
       except Exception as e:
           logger.error(f"Error deleting file: {e}")
           return self.error(message="Failed to delete file", status_code=500)

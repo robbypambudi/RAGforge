@@ -58,7 +58,7 @@ class FileRepository:
         except Exception as e:
             return None
         
-    def delete_file(self, file_path: str) -> bool:
+    def delete_local_file(self, file_path: str) -> bool:
         """
         Delete a file
         """

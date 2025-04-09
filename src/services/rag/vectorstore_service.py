@@ -91,5 +91,5 @@ class VectorStoreService:
                 
         return chunks_id
     
-    def delete_vector_store(self, chunks):
+    def delete_document_by_chunks(self, chunks: List[str]):
         self.vector_store.delete(chunks)

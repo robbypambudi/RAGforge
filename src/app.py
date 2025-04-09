@@ -87,6 +87,7 @@ class App:
             file_storage_service=file_storage_service,
             embedding_service=embedding_service,
             vectorstore_service=vectorstore_service,
+            memorystore_service=memorystore_service
         )
         questions_controller = QuestionsController(
             chain_service=chain_service,

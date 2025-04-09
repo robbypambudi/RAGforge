@@ -1,6 +1,6 @@
 import os
+import shutil
 from src.repositories.file_repository import FileRepository
-from src.constants import DOCUMENT_PATH
 
 class FileStorageService:
     file_repository: FileRepository
@@ -52,7 +52,7 @@ class FileStorageService:
         """
         return os.path.exists(file_path)
     
-    def delete_file(self, file_path: str) -> bool:
+    def delete_local_file(self, file_path: str) -> bool:
         """
         Delete a file
         """
@@ -64,7 +64,21 @@ class FileStorageService:
                 raise ValueError(f"File {file_path} does not exist")
         except Exception as e:
             print(e)
-            return False
+            raise e
+    def delete_directory(self, dir_path: str) -> bool:
+        """
+        Delete a directory
+        """
+        try:
+            if os.path.exists(dir_path):
+                shutil.rmtree(dir_path)
+                return True
+            else:
+                raise ValueError(f"Directory {dir_path} does not exist")
+        except Exception as e:
+            print(e)
+            raise e 
+        
         
     def get_file_by_file_name(self, file_name: str):
         """
