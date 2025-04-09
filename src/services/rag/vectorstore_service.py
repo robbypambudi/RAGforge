@@ -66,7 +66,8 @@ class VectorStoreService:
         logging.info("Loading all local embeddings...")
         files = self.file_storage_service.get_all_files()
         if not files:
-            raise ValueError("No files found in the database")
+            logging.info("No files found.")
+            return
         
         for file in files:
             logging.info(f"Loading vector store from {file['path']}")
@@ -82,11 +83,10 @@ class VectorStoreService:
     
     def get_chunks_by_filename(self, filename: str):
         vector_dict = self.vector_store.docstore._dict
-        print(vector_dict)
         chunks_id = []
         
         for id in vector_dict.keys():
-            if vector_dict[id].metadata["source"] == filename:
+            if os.path.basename(vector_dict[id].metadata.get("source")) == filename:
                 chunks_id.append(id)
                 
         return chunks_id

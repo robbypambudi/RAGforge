@@ -8,7 +8,6 @@ class FileStorageService:
     def __init__(self, file_repository: FileRepository) -> None:
         self.file_repository = file_repository
         
-    
     def get_all_files(self):
         try:
             files = self.file_repository.get_all_files()
@@ -33,7 +32,10 @@ class FileStorageService:
             return False
     
     def save_file_to_local(self, file, dir_name: str, filename: str) -> str:
-                
+        """
+        Save a file to the local storage
+        """
+        # 
         os.makedirs(dir_name, exist_ok=True)
 
         # Save the file
@@ -63,6 +65,20 @@ class FileStorageService:
         except Exception as e:
             print(e)
             return False
+        
+    def get_file_by_file_name(self, file_name: str):
+        """
+        Get a file by its name
+        """
+        try:
+            file = self.file_repository.get_file_by_file_name(file_name)
+            if not file:
+                raise ValueError(f"File with name {file_name} does not exist")
+            return file
+        except Exception as e:
+            print(e)
+            return None
+            
     
     def verify_file_by_id_name(self, file_id: str, file_name: str):
         """

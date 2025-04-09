@@ -20,5 +20,10 @@ def filesRoute(controller: FilesController) -> List[HandlerRequestType]:
       method=Method.DELETE.value,
       path="/files/knowledge",
       handler=controller.delete_file_with_knowledge,
+    ),
+    HandlerRequestType(
+      method=Method.GET.value,
+      path="/files/knowledge",
+      handler=controller.get_file_by_file_name,
     )
   ]

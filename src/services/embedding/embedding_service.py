@@ -1,5 +1,4 @@
 
-import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from typing import List
@@ -15,7 +14,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 class EmbeddingService:
   def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService):

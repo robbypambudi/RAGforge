@@ -111,3 +111,30 @@ class FilesController(ResponseHandler):
       except Exception as e:
           logger.error(f"Error deleting file: {e}")
           return self.error(message="Failed to delete file", status_code=500)
+        
+  async def get_file_by_file_name(self, file_name: str) -> JSONResponse:
+      """
+      Get a file by its name
+      """
+      try:
+          file = self.file_storage_service.get_file_by_file_name(file_name)
+          if not file:
+              return self.error(message="File not found", status_code=404)
+            
+          chunks = self.vectorstore_service.get_chunks_by_filename(file.name)
+          if not chunks:
+              return self.error(message="No chunks found for the file", status_code=404)
+          
+          return self.success(data={
+              "id": file.id,
+              "file": file.name,
+              "chunks": chunks
+          }, message="File retrieved successfully", status_code=200)
+          
+      except ValueError as e:
+          logger.error(f"Error retrieving file: {e}")
+          return self.error(message="File not found", status_code=404)
+        
+      except Exception as e:
+          logger.error(f"Error retrieving file: {e}")
+          return self.error(message="Failed to retrieve file", status_code=500)

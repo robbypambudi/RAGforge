@@ -71,6 +71,16 @@ class FileRepository:
         except Exception as e:
             return False
     
+    def get_file_by_file_name(self, file_name: str) -> Files:
+        """
+        Get a file by its name
+        """
+        try:
+            stmt = select(Files).where(Files.name == file_name)
+            result = self.db.session.execute(stmt).scalar_one_or_none()
+            return result
+        except Exception as e:
+            return None
         
             
         
