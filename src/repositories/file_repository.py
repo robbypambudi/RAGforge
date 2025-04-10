@@ -1,4 +1,6 @@
 import os
+import shutil
+
 from fastapi import File
 from sqlalchemy import select
 from src.entities.files import Files
@@ -19,7 +21,6 @@ class FileRepository:
         except Exception as e:
             return []
         
-    
     def save(self, name: str, path: str, description: str, metadatas: str) -> bool:
         try:
             new_file = Files(
@@ -64,7 +65,7 @@ class FileRepository:
         """
         try:
             if os.path.exists(file_path):
-                os.remove(file_path)
+                shutil.rmtree(file_path)
                 return True
             else:
                 raise ValueError(f"File {file_path} does not exist")
@@ -82,5 +83,22 @@ class FileRepository:
         except Exception as e:
             return None
         
+    def delete_file(self, file: Files) -> bool:
+        """
+        Delete a file
+        """
+        try:
+            if not file:
+                raise ValueError(f"File with ID {file.id} does not exist")
             
-        
+            # Delete the file from the database
+            self.db.transaction(
+                lambda: self.db.session.delete(file)
+            )
+            
+            # Delete the file from the local storage
+            self.delete_local_file(file.path)
+            
+            return True
+        except Exception as e:
+            return False

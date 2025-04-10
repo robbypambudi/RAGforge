@@ -1,5 +1,5 @@
 import os
-import shutil
+from src.entities.files import Files
 from src.repositories.file_repository import FileRepository
 
 class FileStorageService:
@@ -45,40 +45,6 @@ class FileStorageService:
             raise ValueError(f"File {filename} already exists")
 
         return self.file_repository.save_file_to_local(file, full_path)
-    
-    def file_exists(self, file_path: str) -> bool:
-        """
-        Check if a file exists
-        """
-        return os.path.exists(file_path)
-    
-    def delete_local_file(self, file_path: str) -> bool:
-        """
-        Delete a file
-        """
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                return True
-            else:
-                raise ValueError(f"File {file_path} does not exist")
-        except Exception as e:
-            print(e)
-            raise e
-    def delete_directory(self, dir_path: str) -> bool:
-        """
-        Delete a directory
-        """
-        try:
-            if os.path.exists(dir_path):
-                shutil.rmtree(dir_path)
-                return True
-            else:
-                raise ValueError(f"Directory {dir_path} does not exist")
-        except Exception as e:
-            print(e)
-            raise e 
-        
         
     def get_file_by_file_name(self, file_name: str):
         """
@@ -92,8 +58,7 @@ class FileStorageService:
         except Exception as e:
             print(e)
             return None
-            
-    
+              
     def verify_file_by_id_name(self, file_id: str, file_name: str):
         """
         Verify a file by its ID and name
@@ -111,4 +76,24 @@ class FileStorageService:
             print(e)
             return None
 
-    
+    def delete_file(self, file: Files) -> bool:
+        """
+        Delete a file
+        1. Delete from the database
+        2. Delete from the local storage
+        """
+        try:
+            # Delete from the database
+            if not file:
+                raise ValueError(f"File with ID {file.id} does not exist")
+            
+            if self.file_repository.delete_file(file):
+                # Delete from the local storage
+                self.file_repository.delete_local_file(file.path)
+                return True
+            else:
+                raise ValueError(f"Failed to delete file with ID {file.id}")
+                        
+        except Exception as e:
+            print(e)
+            raise e 

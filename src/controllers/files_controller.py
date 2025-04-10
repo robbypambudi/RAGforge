@@ -48,8 +48,7 @@ class FilesController(ResponseHandler):
     5. Add the vector store to the vector store service
     6. Save the file to the database
     7. Return the file path
-    """
-    
+    """    
     filename = file.filename
     dir_path = os.path.join("documents", filename.split(".")[0]) 
     
@@ -112,9 +111,8 @@ class FilesController(ResponseHandler):
           
           if not chunks:
               return self.error(message="No chunks found for the file", status_code=404)
-          
-          self.file_storage_service.delete_directory(file.path)
-          self.file_storage_service.delete_file(file.id)
+            
+          self.file_storage_service.delete_file(file)
           self.vectorstore_service.delete_document_by_chunks(chunks)
           self.memorystore_service.clear_memory()
           
