@@ -7,12 +7,12 @@ def questionsRoute(controller: QuestionsController) -> List[HandlerRequestType]:
   return [
     HandlerRequestType(
       method=Method.POST.value,
-      path="/questions",
-      handler=controller.ask_with_stream,
+      path="/questions/no-stream",
+      handler=controller.ask_without_stream,
     ),
     HandlerRequestType(
       method=Method.POST.value,
-      path="/questions/no-stream",
-      handler=controller.ask_without_stream,
+      path="/questions/stream",
+      handler=controller.ask_with_stream,
     )
   ]

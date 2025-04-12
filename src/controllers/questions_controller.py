@@ -19,20 +19,38 @@ class QuestionsController(ResponseHandler):
     self.vectorstore_service = vectorstore_service
     self.memorystore_service = memorystore_service
     self.questions_service = questions_service
+  
+  async def _chain_stream(self, question: str, id:str, is_output_html: bool = True):
+    """
+    Initialize the chain service with the specified parameters.
+    """
+    memorystore = self.memorystore_service.get_memory(id)
+    context = self.chain_service.get_context(question, memorystore)
+    print(f"Context: {context}")
+    chain_gen = self.chain_service.get_chain(is_stream=True, is_output_html=is_output_html).astream(context)
     
-  def ask_with_stream(self, question: str):
+    accumulated_answer = ""
+    async for chunk in chain_gen:
+      accumulated_answer += chunk
+      yield chunk
+    
+    # After the streaming is done, save the answer to the memory store
+    self.memorystore_service.add_ai_message(id, accumulated_answer)
+    
+  def ask_with_stream(self, payload: PostQuestionStreamGeneratorType):
     """
     Ask a question to the chain service and return the answer.
-    """
-    self.memorystore_service.add_user_message(question.id, question.question)
-    
+    """    
     try:
       # Call the chain service with the question
-      self.memorystore_service.add_user_message(question.id, question.question)
+      self.memorystore_service.add_user_message(payload.id, payload.question)
       
       # Call the chain service with the question
       return EventSourceResponse(
-        self.chain_service.ask_with_stream(question.question),
+        self._chain_stream(
+          payload.question,
+          payload.id,
+        ),
         media_type="text/event-stream",
       )
     except Exception as e:
@@ -53,7 +71,6 @@ class QuestionsController(ResponseHandler):
       context = self.chain_service.get_context(payload.question, memorystore)
       
       # Ambil chain dan dapatkan jawaban dari LL
-      
       answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
             
       # Simpan jawaban AI ke dalam memory store

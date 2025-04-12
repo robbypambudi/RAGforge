@@ -47,7 +47,7 @@ class ChainService:
     Initialize the LLM (Language Model) with the specified parameters.
     """
     return ChatOpenAI(
-      model="gpt-3.5-turbo",
+      model="gpt-4o",
       temperature=0.5,
       streaming=is_stream,
       
