@@ -26,7 +26,8 @@ class QuestionsController(ResponseHandler):
     """
     memorystore = self.memorystore_service.get_memory(id)
     context = self.chain_service.get_context(question, memorystore)
-    print(f"Context: {context}")
+    # Pretty print the context
+    logger.info(f"Context: {context}")
     chain_gen = self.chain_service.get_chain(is_stream=True, is_output_html=is_output_html).astream(context)
     
     accumulated_answer = ""

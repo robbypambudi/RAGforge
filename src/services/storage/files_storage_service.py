@@ -97,3 +97,13 @@ class FileStorageService:
         except Exception as e:
             print(e)
             raise e 
+    
+    def file_exists(self, file_path: str) -> bool:
+        """
+        Check if a file exists
+        """
+        try:
+            return os.path.exists(file_path)
+        except Exception as e:
+            print(e)
+            return False

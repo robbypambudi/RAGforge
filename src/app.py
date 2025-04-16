@@ -73,7 +73,7 @@ class App:
         memorystore_repository = MemorystoreRepository()
         
         # Intialize the services
-        # chroma_service = ChromaService(host="localhost", port=8000, collection_name="my_collection")
+        chroma_service = ChromaService(host="localhost", port=8000)
         file_storage_service = FileStorageService(file_repository=file_repository)
         embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service)
         memorystore_service = MemorystoreService(memorystore_repository=memorystore_repository)
@@ -87,7 +87,8 @@ class App:
             file_storage_service=file_storage_service,
             embedding_service=embedding_service,
             vectorstore_service=vectorstore_service,
-            memorystore_service=memorystore_service
+            memorystore_service=memorystore_service,
+            chroma_service=chroma_service,
         )
         questions_controller = QuestionsController(
             chain_service=chain_service,
@@ -122,4 +123,4 @@ class App:
         
     def run(self):
         self.configure()
-        uvicorn.run(self.app, host="0.0.0.0", port=8000)
+        uvicorn.run(self.app, host="0.0.0.0", port=8080)

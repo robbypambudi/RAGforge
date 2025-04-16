@@ -24,7 +24,7 @@ services:
       - PERSIST_DIRECTORY=/chroma/chroma # this is the default path, change it as needed
       - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-TRUE}
     ports:
-      - 8000:8000
+      - 8081:8000
     networks:
       - my_network
     depends_on:
