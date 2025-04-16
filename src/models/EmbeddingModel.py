@@ -1,14 +1,31 @@
-
 from langchain_huggingface import HuggingFaceEmbeddings
 
 
 class EmbeddingModel:
-    _token = None
-    
-    def __init__(self, model_name, model_kwargs, encode_kwargs)->HuggingFaceEmbeddings:
+
+    def __init__(self, model_name, model_kwargs, encode_kwargs) -> None:
         self.model_name = model_name
         self.model_kwargs = model_kwargs
         self.encode_kwargs = encode_kwargs
-        
-    def __call__(self):
-        return HuggingFaceEmbeddings(model_name=self.model_name, model_kwargs=self.model_kwargs, encode_kwargs=self.encode_kwargs)
+        self._model = None
+
+    def get_model(self) -> HuggingFaceEmbeddings:
+        if self._model is None:
+            self._model = HuggingFaceEmbeddings(
+                model_name=self.model_name,
+                model_kwargs=self.model_kwargs,
+                encode_kwargs=self.encode_kwargs
+            )
+        return self._model
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """
+        Embed documents using the embedding model
+        """
+        return self.get_model().embed_documents(texts)
+
+    def embed_query(self, query):
+        """
+        Embed query using the embedding model
+        """
+        return self.get_model().embed_query(query)

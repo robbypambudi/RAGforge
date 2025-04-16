@@ -37,6 +37,7 @@ from src.logging_config import logger
 
 from src.exceptions import CustomException
 
+
 class App:
     def __init__(self):
         self.app = FastAPI()
@@ -48,8 +49,7 @@ class App:
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME"),
         )
-        
-        
+
     def __middleware__(self):
         self.app.add_middleware(
             CORSMiddleware,
@@ -58,30 +58,32 @@ class App:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-    
+
     def configure(self):
         self.__middleware__()
-        
+
         embedding_model = EmbeddingModel(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
             model_kwargs={'device': 'cpu'},
             encode_kwargs={'padding': True, 'max_length': 512}
-        )()
-        
+        )
+
         # Initialize the repository
         file_repository = FileRepository(db=self.db)
         memorystore_repository = MemorystoreRepository()
-        
-        # Intialize the services
+
+        # Initialize the services
         chroma_service = ChromaService(host="localhost", port=8000)
         file_storage_service = FileStorageService(file_repository=file_repository)
-        embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service)
+        embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service, chroma_service=chroma_service)
         memorystore_service = MemorystoreService(memorystore_repository=memorystore_repository)
 
-        vectorstore_service = VectorStoreService(embedding_model=embedding_model, file_storage_service=file_storage_service, top_k=8)
+        # vectorstore_service = VectorStoreService(embedding_model=embedding_model,
+                                                 file_storage_service=file_storage_service, top_k=8)
         chain_service = ChainService(file_storage_service=file_storage_service, vectorstore_service=vectorstore_service)
-        questions_service = QuestionsService(memorystore_service=memorystore_service, vectorstore_service=vectorstore_service, chain_service=chain_service)
-        
+        questions_service = QuestionsService(memorystore_service=memorystore_service,
+                                             vectorstore_service=vectorstore_service, chain_service=chain_service)
+
         # Controller
         files_controller = FilesController(
             file_storage_service=file_storage_service,
@@ -99,13 +101,13 @@ class App:
         histories_controller = HistoriesController(
             memorystore_service=memorystore_service,
         )
-        
+
         # Routes
         routes = RoutesRegister(app=self.app)
         routes.register_routes(filesRoute(controller=files_controller))
         routes.register_routes(questionsRoute(controller=questions_controller))
         routes.register_routes(historiesRoute(controller=histories_controller))
-        
+
         # Custom 404 handler
         @self.app.exception_handler(StarletteHTTPException)
         async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -120,7 +122,7 @@ class App:
                 status_code=exc.status_code,
                 content={"detail": exc.detail, "status": "error"},
             )
-        
+
     def run(self):
         self.configure()
         uvicorn.run(self.app, host="0.0.0.0", port=8080)

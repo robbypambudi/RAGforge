@@ -7,11 +7,12 @@ from src.entities.files import Files
 
 from config.databases import DB
 
+
 class FileRepository:
-    
-    def __init__ (self, db: DB):
+
+    def __init__(self, db: DB):
         self.db = db
-    
+
     def get_all_files(self) -> list:
         try:
             # Select all files from the database
@@ -20,7 +21,7 @@ class FileRepository:
             return result
         except Exception as e:
             return []
-        
+
     def save(self, name: str, path: str, description: str, metadatas: str) -> bool:
         try:
             new_file = Files(
@@ -35,16 +36,16 @@ class FileRepository:
             return True
         except Exception as e:
             return False
-    
+
     def save_file_to_local(self, file, full_path) -> str:
-    
+
         if os.path.exists(full_path):
             raise ValueError(f"Path {full_path} already exists")
-        
+
         # Save the file
         with open(full_path, "wb") as f:
             f.write(file.file.read())
-            
+
         # Close the file
         return full_path
 
@@ -58,7 +59,7 @@ class FileRepository:
             return result
         except Exception as e:
             return None
-        
+
     def delete_local_file(self, file_path: str) -> bool:
         """
         Delete a file
@@ -71,7 +72,7 @@ class FileRepository:
                 raise ValueError(f"File {file_path} does not exist")
         except Exception as e:
             return False
-    
+
     def get_file_by_file_name(self, file_name: str) -> Files:
         """
         Get a file by its name
@@ -82,7 +83,7 @@ class FileRepository:
             return result
         except Exception as e:
             return None
-        
+
     def delete_file(self, file: Files) -> bool:
         """
         Delete a file
@@ -90,15 +91,15 @@ class FileRepository:
         try:
             if not file:
                 raise ValueError(f"File with ID {file.id} does not exist")
-            
+
             # Delete the file from the database
             self.db.transaction(
                 lambda: self.db.session.delete(file)
             )
-            
+
             # Delete the file from the local storage
             self.delete_local_file(file.path)
-            
+
             return True
         except Exception as e:
             return False

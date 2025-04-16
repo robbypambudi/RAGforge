@@ -69,3 +69,7 @@ docs/_build/
 
 # VSCode Workspace Settings
 .vscode/
+
+# Alembic
+alembic.ini
+chroma

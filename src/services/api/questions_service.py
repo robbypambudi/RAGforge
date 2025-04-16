@@ -4,37 +4,36 @@ from src.services.rag.chain_service import ChainService
 
 
 class QuestionsService:
-  
-  def __init__(self, memorystore_service: MemorystoreService, vectorstore_service: VectorStoreService, chain_service: ChainService):
-    self.memorystore_service = memorystore_service
-    self.vectorstore_service = vectorstore_service
-    self.chain_service = chain_service
-    
-  async def ask_with_stream(self, question_id: str, question: str):
-    """
-    Ask a question to the chain service and return the answer.
-    """
-    try:
-      # Call the chain service with the question
-      memorystore = self.memorystore_service.get_memory(question_id)
-      
-      context = self.chain_service.get_context(question, memorystore)
-      
-      # Call the chain service with the question
-      chain_gen = self.chain_service.get_chain(is_stream=True, is_output_html=False).astream(context)
-      
-      accumulated_answer = ""
-      for answer in chain_gen:
-        if answer:
-          accumulated_answer += answer
-          yield answer
-        else:
-          yield "No answer found."
-          
-      self.memorystore_service.add_ai_message(question_id, accumulated_answer)
-          
-    except Exception as e:
-      yield "An error occurred while processing your request."
-      # Handle the error appropriately
-      
-      
+
+    def __init__(self, memorystore_service: MemorystoreService, vectorstore_service: VectorStoreService,
+                 chain_service: ChainService):
+        self.memorystore_service = memorystore_service
+        self.vectorstore_service = vectorstore_service
+        self.chain_service = chain_service
+
+    async def ask_with_stream(self, question_id: str, question: str):
+        """
+        Ask a question to the chain service and return the answer.
+        """
+        try:
+            # Call the chain service with the question
+            memorystore = self.memorystore_service.get_memory(question_id)
+
+            context = self.chain_service.get_context(question, memorystore)
+
+            # Call the chain service with the question
+            chain_gen = self.chain_service.get_chain(is_stream=True, is_output_html=False).astream(context)
+
+            accumulated_answer = ""
+            for answer in chain_gen:
+                if answer:
+                    accumulated_answer += answer
+                    yield answer
+                else:
+                    yield "No answer found."
+
+            self.memorystore_service.add_ai_message(question_id, accumulated_answer)
+
+        except Exception as e:
+            yield "An error occurred while processing your request."
+            # Handle the error appropriately

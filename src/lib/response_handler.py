@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 from fastapi.responses import JSONResponse
 
+
 class ResponseHandler:
     @staticmethod
     def success(data: Any, message: str = "Success", status_code: int = 200) -> JSONResponse:

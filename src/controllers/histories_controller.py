@@ -1,12 +1,14 @@
 from src.services.rag.memorystore_service import MemorystoreService
 
+
 class HistoriesController():
     """
     Controller for histories
     """
+
     def __init__(self, memorystore_service: MemorystoreService):
         self.memorystore_service = memorystore_service
-        
+
     def get_all(self):
         """
         Get all histories
@@ -22,7 +24,7 @@ class HistoriesController():
                 "status": "error",
                 "message": str(e)
             }
-    
+
     def get_memory_by_id(self, chat_id: str):
         """
         Get memory by chat id
