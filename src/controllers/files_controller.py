@@ -6,13 +6,12 @@ from fastapi import File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from src.lib.response_handler import ResponseHandler
-from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.embedding.embedding_service import EmbeddingService
 from src.services.storage.files_storage_service import FileStorageService
 from src.services.rag.memorystore_service import MemorystoreService
 from src.services.chroma.chroma_service import ChromaService
 
-from src.types.files_request_type import DeleteFileRequestType, UploadFileForm
+from src.types.files_request_type import DeleteFileRequestType
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,13 +23,11 @@ class FilesController(ResponseHandler):
             self,
             file_storage_service: FileStorageService,
             embedding_service: EmbeddingService,
-            vectorstore_service: VectorStoreService,
             memorystore_service: MemorystoreService,
             chroma_service: ChromaService
     ):
         self.file_storage_service = file_storage_service
         self.embedding_service = embedding_service
-        self.vectorstore_service = vectorstore_service
         self.memorystore_service = memorystore_service
         self.chroma_service = chroma_service
 
@@ -55,10 +52,10 @@ class FilesController(ResponseHandler):
         # Step
         1. Save the file to local storage
         2. Split the document into chunks
-        3. Embed the document
+        3. Embed document
         4. Save the embeddings to local storage
         5. Add the vector store to the vector store service
-        6. Save the file to the database
+        6. Save the file to database
         7. Return the file path
         """
         filename = file.filename
@@ -76,7 +73,7 @@ class FilesController(ResponseHandler):
             if not embedded_documents:
                 raise Exception("Failed to embed documents")
 
-            self.chroma_service.use_collection(collection_name)
+            collection = self.chroma_service.get_collection(collection_name=collection_name)
 
             for i, (chunk, embedding) in enumerate(zip(splitted_document, embedded_documents)):
                 self.chroma_service.add_document(
@@ -87,7 +84,8 @@ class FilesController(ResponseHandler):
                         "chunk": chunk,
                         "filename": filename,
                         "description": description,
-                    }
+                    },
+                    collection=collection
                 )
 
             self.file_storage_service.save_file(
@@ -114,7 +112,7 @@ class FilesController(ResponseHandler):
         except ValueError as e:
             return self.error(message=str(e), status_code=400)
         except Exception as e:
-            # Remove file if it exists
+            # Remove if it exists
             logger.error(f"Error uploading file: {e}")
 
             return self.error(message="Failed to save file", status_code=500)

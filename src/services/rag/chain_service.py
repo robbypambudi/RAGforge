@@ -1,4 +1,6 @@
 import os
+
+from chromadb.types import Collection
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
@@ -42,6 +44,7 @@ class ChainService:
         )
 
         return prompt
+
     @staticmethod
     def _init_llm(self, is_stream: bool = False):
         """
@@ -92,22 +95,18 @@ class ChainService:
                 references.append(source)
         return references
 
-    def get_context(self, question, memorystore):
-        try:
-            # Check if the vectorstore is initialized
-            if not self.chroma_service:
-                return {
-                    "context": [HumanMessage(content="Vectorstore belum diinisialisasi.")],
-                    "message": memorystore.messages,
-                }
-
-            docs = self.vectorstore_service.similarity_search(question)
-
-            formatted_docs = self._format_docs(docs)
+    def get_context(self, question, memorystore, collection: Collection = None):
+        # Check if the vectorstore is initialized
+        if not self.chroma_service:
             return {
-                "context": [HumanMessage(content=formatted_docs)],
+                "context": [HumanMessage(content="Vectorstore belum diinisialisasi.")],
                 "message": memorystore.messages,
             }
-        except Exception as e:
-            exception_message = str(e)
-            raise Exception(f"Error in get_context: {exception_message}")
+        #  No collection is currently selected.
+        docs = self.chroma_service.query_embeddings(question, collection=collection)
+
+        formatted_docs = self._format_docs(docs)
+        return {
+            "context": [HumanMessage(content=formatted_docs)],
+            "message": memorystore.messages,
+        }

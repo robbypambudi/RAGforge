@@ -1,3 +1,4 @@
+from src.services.chroma.chroma_service import ChromaService
 from src.services.rag.memorystore_service import MemorystoreService
 from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.rag.chain_service import ChainService
@@ -5,11 +6,11 @@ from src.services.rag.chain_service import ChainService
 
 class QuestionsService:
 
-    def __init__(self, memorystore_service: MemorystoreService, vectorstore_service: VectorStoreService,
-                 chain_service: ChainService):
+    def __init__(self, memorystore_service: MemorystoreService, chain_service: ChainService,
+                 chroma_service: ChromaService):
         self.memorystore_service = memorystore_service
-        self.vectorstore_service = vectorstore_service
         self.chain_service = chain_service
+        self.chroma_service = chroma_service
 
     async def ask_with_stream(self, question_id: str, question: str):
         """

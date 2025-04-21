@@ -75,26 +75,26 @@ class App:
         # Initialize the services
         chroma_service = ChromaService(host="localhost", port=8000)
         file_storage_service = FileStorageService(file_repository=file_repository)
-        embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service, chroma_service=chroma_service)
+        embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service,
+                                             chroma_service=chroma_service)
         memorystore_service = MemorystoreService(memorystore_repository=memorystore_repository)
 
         # vectorstore_service = VectorStoreService(embedding_model=embedding_model,
-                                                 file_storage_service=file_storage_service, top_k=8)
-        chain_service = ChainService(file_storage_service=file_storage_service, vectorstore_service=vectorstore_service)
-        questions_service = QuestionsService(memorystore_service=memorystore_service,
-                                             vectorstore_service=vectorstore_service, chain_service=chain_service)
+        #                                          file_storage_service=file_storage_service, top_k=8)
+        chain_service = ChainService(file_storage_service=file_storage_service, chroma_service=chroma_service)
+        questions_service = QuestionsService(memorystore_service=memorystore_service, chain_service=chain_service,
+                                             chroma_service=chroma_service)
 
         # Controller
         files_controller = FilesController(
             file_storage_service=file_storage_service,
             embedding_service=embedding_service,
-            vectorstore_service=vectorstore_service,
             memorystore_service=memorystore_service,
             chroma_service=chroma_service,
         )
         questions_controller = QuestionsController(
+            chroma_service=chroma_service,
             chain_service=chain_service,
-            vectorstore_service=vectorstore_service,
             memorystore_service=memorystore_service,
             questions_service=questions_service
         )
@@ -107,7 +107,7 @@ class App:
         routes.register_routes(filesRoute(controller=files_controller))
         routes.register_routes(questionsRoute(controller=questions_controller))
         routes.register_routes(historiesRoute(controller=histories_controller))
-
+        
         # Custom 404 handler
         @self.app.exception_handler(StarletteHTTPException)
         async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):

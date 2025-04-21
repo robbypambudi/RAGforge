@@ -2,11 +2,11 @@ from src.services.rag.memorystore_service import MemorystoreService
 
 
 class HistoriesController():
-    """
-    Controller for histories
-    """
 
     def __init__(self, memorystore_service: MemorystoreService):
+        """
+        Controller for histories
+        """
         self.memorystore_service = memorystore_service
 
     def get_all(self):

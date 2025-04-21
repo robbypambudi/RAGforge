@@ -1,13 +1,13 @@
-import os
 import logging
 
+from sse_starlette.sse import EventSourceResponse
+
 from src.lib.response_handler import ResponseHandler
+from src.services.api.questions_service import QuestionsService
+from src.services.chroma.chroma_service import ChromaService
 from src.services.rag.chain_service import ChainService
-from src.services.rag.vectorstore_service import VectorStoreService
 from src.services.rag.memorystore_service import MemorystoreService
 from src.types.question_request_type import PostQuestionStreamGeneratorType
-from src.services.api.questions_service import QuestionsService
-from sse_starlette.sse import EventSourceResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,12 +15,12 @@ logger = logging.getLogger(__name__)
 
 class QuestionsController(ResponseHandler):
 
-    def __init__(self, chain_service: ChainService, vectorstore_service: VectorStoreService,
+    def __init__(self, chain_service: ChainService, chroma_service: ChromaService,
                  memorystore_service: MemorystoreService, questions_service: QuestionsService):
         self.chain_service = chain_service
-        self.vectorstore_service = vectorstore_service
         self.memorystore_service = memorystore_service
         self.questions_service = questions_service
+        self.chroma_service = chroma_service
 
     async def _chain_stream(self, question: str, id: str, is_output_html: bool = True):
         """
@@ -67,11 +67,11 @@ class QuestionsController(ResponseHandler):
 
         try:
             # Tambahkan pesan pengguna ke memory store
+            collection = self.chroma_service.get_collection(collection_name=payload.collection_name)
             self.memorystore_service.add_user_message(payload.id, payload.question)
             memorystore = self.memorystore_service.get_memory(payload.id)
 
-            # Dapatkan context dan dokumen referensi
-            context = self.chain_service.get_context(payload.question, memorystore)
+            context = self.chain_service.get_context(payload.question, memorystore, collection)
 
             # Ambil chain dan dapatkan jawaban dari LL
             answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
@@ -85,7 +85,10 @@ class QuestionsController(ResponseHandler):
                 },
                 status_code=200
             )
-
+        # as Value Error
+        except ValueError as e:
+            logger.error(f"Error in ask_without_stream: {e}")
+            return self.error(message=str(e), status_code=400)
         except Exception as e:
             logger.error(f"Error in ask_without_stream: {e}")
             return self.error(message="An error occurred while processing your request.", status_code=500)
