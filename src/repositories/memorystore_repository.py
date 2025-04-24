@@ -34,8 +34,6 @@ class MemorystoreRepository:
         if chat_id not in self.memorystore:
             raise ValueError(f"Memory for chat ID {chat_id} not found.")
 
-        print("Memory retrieved:", self.memorystore[chat_id])
-
         return self.memorystore[chat_id]
 
     def delete_memory(self, chat_id: str) -> None:

@@ -1,27 +1,32 @@
-import os
+import logging
 
+from chromadb import QueryResult
 from chromadb.types import Collection
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+from langchain_openai import ChatOpenAI
 
 from src.services.chroma.chroma_service import ChromaService
+from src.services.embedding.embedding_service import EmbeddingService
 from src.services.storage.files_storage_service import FileStorageService
-from src.services.rag.vectorstore_service import VectorStoreService
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ChainService:
 
-    def __init__(self, file_storage_service: FileStorageService, chroma_service: ChromaService):
+    def __init__(self, file_storage_service: FileStorageService, chroma_service: ChromaService,
+                 embedding_service: EmbeddingService):
         self.file_storage_service = file_storage_service
         self.chroma_service = chroma_service
-        self.embeddings = None
+        self.embedding_service = embedding_service
         self.llm = None
         self.chain = None
 
     @staticmethod
-    def _init_prompt(self, is_output_html: bool = False):
+    def _init_prompt(is_output_html: bool = False):
         """
         Prompt template for the chain.
 
@@ -46,7 +51,7 @@ class ChainService:
         return prompt
 
     @staticmethod
-    def _init_llm(self, is_stream: bool = False):
+    def _init_llm(is_stream: bool = False):
         """
         Initialize the LLM (Language Model) with the specified parameters.
         """
@@ -70,13 +75,22 @@ class ChainService:
         return chain
 
     @staticmethod
-    def _format_docs(docs):
+    def _format_docs(docs: QueryResult):
         """
         Format the documents for the chain.
         """
-        return "\n\n".join(
-            doc.page_content for doc in docs
-        ) if docs else "Tidak ada informasi yang ditemukan."
+        if not docs or not docs.get('metadatas') or not docs.get('documents'):
+            return "Tidak ada informasi yang ditemukan."
+
+        formatted_docs = []
+        for doc, metadata in zip(docs['documents'][0], docs['metadatas'][0]):
+            formatted_doc = f"Content: {doc}\n"
+            if metadata.get('source'):
+                formatted_doc += f"Source: {metadata['source']}\n"
+                formatted_docs.append(formatted_doc)
+
+            return "\n\n".join(formatted_docs)
+        return None
 
     @staticmethod
     def format_references(self, docs):
@@ -103,8 +117,15 @@ class ChainService:
                 "message": memorystore.messages,
             }
         #  No collection is currently selected.
-        docs = self.chroma_service.query_embeddings(question, collection=collection)
-
+        query_embedding = self.embedding_service.embed_query(question)
+        # docs
+        docs = self.chroma_service.query_embeddings(
+            query_embedding=query_embedding,
+            collection=collection,
+            n_results=5
+        )
+        # Print the retrieved documents
+        logger.info(f"Retrieved documents: {docs}")
         formatted_docs = self._format_docs(docs)
         return {
             "context": [HumanMessage(content=formatted_docs)],

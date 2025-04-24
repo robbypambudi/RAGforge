@@ -1,10 +1,10 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from typing import List
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.models.EmbeddingModel import EmbeddingModel
 from src.services.chroma.chroma_service import ChromaService
@@ -22,7 +22,8 @@ def _initialize_text_splitter() -> RecursiveCharacterTextSplitter:
 
 
 class EmbeddingService:
-    def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService, chroma_service: ChromaService):
+    def __init__(self, embedding_model: EmbeddingModel, file_storage_service: FileStorageService,
+                 chroma_service: ChromaService):
         self.chroma_service = chroma_service
         self.embedding_model = embedding_model
         self.file_storage_service = file_storage_service
@@ -44,8 +45,17 @@ class EmbeddingService:
         texts = [doc.page_content for doc in split_documents]
         return self.embedding_model.embed_documents(texts)
 
-    def embed_texts(self, texts: List[str]) -> List[str]:
-        return self.embedding_model.embed_query(texts)
+    def embed_texts(self, texts: List[str]) -> List[List[float]]:
+        """
+        Embed multiple texts using the embedding model
+        """
+        return self.embedding_model.embed_documents(texts)
+
+    def embed_query(self, query: str) -> List[float]:
+        """
+        Embed a single query using the embedding model
+        """
+        return self.embedding_model.embed_query(query)
 
     def initialize_with_preprocessed_documents(self):
         # Retrieve database file paths
@@ -90,7 +100,6 @@ class EmbeddingService:
                 # Save to chroma
                 for i, (text, embedding, metadata) in enumerate(zip(texts, embeddings, metadatas)):
                     print("Embedding:", embedding)
-                
 
                 # Save the embeddings if the file does not already exist
                 # embedding_path = str(file.with_suffix(''))

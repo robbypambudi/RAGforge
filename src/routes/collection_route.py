@@ -10,5 +10,10 @@ def collectionRoute(controller: CollectionController) -> List[HandlerRequestType
             method=Method.POST.value,
             path='/collection',
             handler=controller.create_collection
+        ),
+        HandlerRequestType(
+            method=Method.GET.value,
+            path='/collection',
+            handler=controller.get_collections
         )
     ]

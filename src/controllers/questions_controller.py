@@ -22,7 +22,8 @@ class QuestionsController(ResponseHandler):
         self.questions_service = questions_service
         self.chroma_service = chroma_service
 
-    async def _chain_stream(self, question: str, id: str, is_output_html: bool = True):
+    @staticmethod
+    async def _chain_stream(self, question: str, question_id: str, is_output_html: bool = True):
         """
         Initialize the chain service with the specified parameters.
         """
@@ -51,8 +52,9 @@ class QuestionsController(ResponseHandler):
             # Call the chain service with the question
             return EventSourceResponse(
                 self._chain_stream(
-                    payload.question,
-                    payload.id,
+                    self,
+                    question=payload.question,
+                    question_id=payload.id
                 ),
                 media_type="text/event-stream",
             )
@@ -64,7 +66,6 @@ class QuestionsController(ResponseHandler):
         """
         Ask a question to the chain service and return the answer.
         """
-
         try:
             # Tambahkan pesan pengguna ke memory store
             collection = self.chroma_service.get_collection(collection_name=payload.collection_name)
@@ -73,6 +74,8 @@ class QuestionsController(ResponseHandler):
 
             context = self.chain_service.get_context(payload.question, memorystore, collection)
 
+            # Pretty print the context
+            logger.info(f"Context: {context}")
             # Ambil chain dan dapatkan jawaban dari LL
             answer = self.chain_service.get_chain(is_stream=False, is_output_html=False).invoke(context)
 

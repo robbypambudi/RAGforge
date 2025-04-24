@@ -1,5 +1,6 @@
-import chromadb
 import logging
+
+import chromadb
 from chromadb import Collection, QueryResult, GetResult
 
 logging.basicConfig(level=logging.INFO)
@@ -12,15 +13,17 @@ class ChromaService:
         logger.info(f"ChromaDB client initialized with host {host} and port {port}.")
 
     @staticmethod
-    def add_document(self, doc_id: str, embedding: list, metadata: dict, collection: Collection):
+    def add_document(doc_id: str, embedding: list, metadata: dict, collection: Collection, document: str):
         collection.add(
             ids=[doc_id],
+            documents=document,
             embeddings=[embedding],
             metadatas=[metadata]
         )
 
     @staticmethod
-    def query_embeddings(self, query_embedding: list, n_results: int = 5, collection: Collection = None) -> QueryResult:
+    def query_embeddings(query_embedding: list = None, n_results: int = 5,
+                         collection: Collection = None) -> QueryResult:
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results
@@ -39,7 +42,19 @@ class ChromaService:
         logger.info(f"Document {doc_id} deleted from collection {collection.name}.")
 
     def get_collection(self, collection_name: str) -> Collection:
-        if collection_name not in self.client.list_collections():
+        collections = [collection.name for collection in self.client.list_collections()]
+        if collection_name not in collections:
             raise ValueError("Collection not found")
 
         return self.client.get_collection(collection_name)
+
+    def create_collection(self, collection_name: str) -> Collection:
+        collections = [collection.name for collection in self.client.list_collections()]
+        if collection_name in collections:
+            raise ValueError("Collection already exists")
+        return self.client.create_collection(collection_name)
+
+    def get_all_collections(self) -> list:
+        collections = self.client.list_collections()
+
+        return [collection.name for collection in collections]

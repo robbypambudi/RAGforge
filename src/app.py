@@ -1,41 +1,31 @@
-from config.databases import DB
-import uvicorn
 import os
+from urllib.request import Request
 
+import uvicorn
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.requests import Request
-from fastapi.exception_handlers import http_exception_handler
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from langchain_huggingface import HuggingFaceEmbeddings
-from src.models.EmbeddingModel import EmbeddingModel
-
+from config.databases import DB
+from src.controllers.collection_controller import CollectionController
 from src.controllers.files_controller import FilesController
-from src.controllers.questions_controller import QuestionsController
 from src.controllers.histories_controller import HistoriesController
-
+from src.controllers.questions_controller import QuestionsController
+from src.models.EmbeddingModel import EmbeddingModel
 from src.repositories.file_repository import FileRepository
 from src.repositories.memorystore_repository import MemorystoreRepository
-
-from src.services.rag.memorystore_service import MemorystoreService
-from src.services.rag.chain_service import ChainService
-from src.services.chroma.chroma_service import ChromaService
-from src.services.rag.vectorstore_service import VectorStoreService
-from src.services.storage.files_storage_service import FileStorageService
-from src.services.api.questions_service import QuestionsService
-
-from src.services.embedding.embedding_service import EmbeddingService
 from src.routes import RoutesRegister
-
+from src.routes.collection_route import collectionRoute
 from src.routes.files_route import filesRoute
-from src.routes.questions_route import questionsRoute
 from src.routes.histories_route import historiesRoute
-
-from src.logging_config import logger
-
-from src.exceptions import CustomException
+from src.routes.questions_route import questionsRoute
+from src.services.api.questions_service import QuestionsService
+from src.services.chroma.chroma_service import ChromaService
+from src.services.embedding.embedding_service import EmbeddingService
+from src.services.rag.chain_service import ChainService
+from src.services.rag.memorystore_service import MemorystoreService
+from src.services.storage.files_storage_service import FileStorageService
 
 
 class App:
@@ -75,14 +65,15 @@ class App:
         # Initialize the services
         chroma_service = ChromaService(host="localhost", port=8000)
         file_storage_service = FileStorageService(file_repository=file_repository)
-        embedding_service = EmbeddingService(embedding_model=embedding_model, file_storage_service=file_storage_service,
+        embedding_service = EmbeddingService(embedding_model=embedding_model,
+                                             file_storage_service=file_storage_service,
                                              chroma_service=chroma_service)
         memorystore_service = MemorystoreService(memorystore_repository=memorystore_repository)
-
-        # vectorstore_service = VectorStoreService(embedding_model=embedding_model,
-        #                                          file_storage_service=file_storage_service, top_k=8)
-        chain_service = ChainService(file_storage_service=file_storage_service, chroma_service=chroma_service)
-        questions_service = QuestionsService(memorystore_service=memorystore_service, chain_service=chain_service,
+        chain_service = ChainService(file_storage_service=file_storage_service,
+                                     chroma_service=chroma_service,
+                                     embedding_service=embedding_service)
+        questions_service = QuestionsService(memorystore_service=memorystore_service,
+                                             chain_service=chain_service,
                                              chroma_service=chroma_service)
 
         # Controller
@@ -101,26 +92,29 @@ class App:
         histories_controller = HistoriesController(
             memorystore_service=memorystore_service,
         )
+        collection_controller = CollectionController(
+            chroma_service=chroma_service
+        )
 
         # Routes
         routes = RoutesRegister(app=self.app)
         routes.register_routes(filesRoute(controller=files_controller))
         routes.register_routes(questionsRoute(controller=questions_controller))
         routes.register_routes(historiesRoute(controller=histories_controller))
-        
-        # Custom 404 handler
-        @self.app.exception_handler(StarletteHTTPException)
-        async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
-            if exc.status_code == 404:
-                return JSONResponse(
-                    status_code=404,
-                    content={"detail": "This route does not exist.",
-                             "status": "error"},
-                )
-            logger.error(f"Custom exception: {exc.detail}")
+        routes.register_routes(collectionRoute(controller=collection_controller))
+
+        @self.app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(_request: Request, exc: RequestValidationError):
+            errors = [
+                {
+                    "field": ".".join(map(str, err["loc"][1:])),  # skip 'body'
+                    "message": err["msg"]
+                }
+                for err in exc.errors()
+            ]
             return JSONResponse(
-                status_code=exc.status_code,
-                content={"detail": exc.detail, "status": "error"},
+                status_code=422,
+                content={"errors": errors}
             )
 
     def run(self):
