@@ -1,6 +1,7 @@
 from typing import List
-from src.controllers.questions_controller import QuestionsController
-from src.constants.http_method import Method
+
+from api.constants import Method
+from api.controllers.questions_controller import QuestionsController
 from src.types.handler_request_type import HandlerRequestType
 
 

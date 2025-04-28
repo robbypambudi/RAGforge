@@ -1,14 +1,13 @@
-from typing import List
-from langchain_community.vectorstores import FAISS
-import os
 import logging
+import os
+from typing import List
 
 import torch
+from langchain_community.vectorstores import FAISS
 
+from api.entities import Files
 from src.models import EmbeddingModel
 from src.services.storage.files_storage_service import FileStorageService
-from src.constants import BASE_KNOWLEDGE_DOCUMENT_PATH
-from src.entities.files import Files
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

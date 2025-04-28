@@ -1,6 +1,5 @@
-from typing import List
-from src.controllers.histories_controller import HistoriesController
-from src.constants.http_method import Method
+from api.constants import Method
+from api.controllers.histories_controller import HistoriesController
 from src.types.handler_request_type import HandlerRequestType
 
 

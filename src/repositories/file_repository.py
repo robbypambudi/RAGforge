@@ -1,10 +1,9 @@
 import os
 import shutil
 
-from fastapi import File
 from sqlalchemy import select
-from src.entities.files import Files
 
+from api.entities import Files
 from config.databases import DB
 
 

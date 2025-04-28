@@ -1,5 +1,6 @@
 import os
-from src.entities.files import Files
+
+from api.entities import Files
 from src.repositories.file_repository import FileRepository
 
 

@@ -17,7 +17,6 @@ class ChromaService:
         collection.add(
             ids=[doc_id],
             documents=document,
-            embeddings=[embedding],
             metadatas=[metadata]
         )
 
@@ -58,3 +57,10 @@ class ChromaService:
         collections = self.client.list_collections()
 
         return [collection.name for collection in collections]
+
+    def delete_collection(self, collection_name: str):
+        collections = [collection.name for collection in self.client.list_collections()]
+        if collection_name not in collections:
+            raise ValueError("Collection not found")
+        self.client.delete_collection(collection_name)
+        logger.info(f"Collection {collection_name} deleted successfully.")

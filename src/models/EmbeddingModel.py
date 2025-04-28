@@ -9,6 +9,8 @@ class EmbeddingModel:
         self.encode_kwargs = encode_kwargs
         self._model = None
 
+        self._init_model()
+
     def get_model(self) -> HuggingFaceEmbeddings:
         if self._model is None:
             self._model = HuggingFaceEmbeddings(
@@ -29,3 +31,13 @@ class EmbeddingModel:
         Embed query using the embedding model
         """
         return self.get_model().embed_query(query)
+
+    def _init_model(self):
+        """
+        Initialize the embedding model
+        """
+        self._model = HuggingFaceEmbeddings(
+            model_name=self.model_name,
+            model_kwargs=self.model_kwargs,
+            encode_kwargs=self.encode_kwargs
+        )

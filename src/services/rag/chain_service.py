@@ -60,7 +60,7 @@ class ChainService:
             temperature=0.5,
             streaming=is_stream,
 
-            api_key="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",
+            api_key=""
         )
 
     def get_chain(self, is_stream: bool, is_output_html: bool = False):
