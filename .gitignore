@@ -72,4 +72,4 @@ docs/_build/
 
 # Alembic
 alembic.ini
-chroma
+rag/chroma

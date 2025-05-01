@@ -1,7 +1,8 @@
 from typing import List
 
-from api.constants import Method
-from api.controllers.files_controller import FilesController
+from app.constants import Method
+
+from app.controllers.files_controller import FilesController
 from src.types.handler_request_type import HandlerRequestType
 
 

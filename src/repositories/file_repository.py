@@ -3,7 +3,7 @@ import shutil
 
 from sqlalchemy import select
 
-from api.entities import Files
+from app.models import Files
 from config.databases import DB
 
 

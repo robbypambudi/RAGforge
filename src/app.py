@@ -7,10 +7,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.controllers.collection_controller import CollectionController
-from api.controllers.files_controller import FilesController
-from api.controllers.histories_controller import HistoriesController
-from api.controllers.questions_controller import QuestionsController
+from app.controllers.collection_controller import CollectionController
+from app.controllers.files_controller import FilesController
+from app.controllers.histories_controller import HistoriesController
+from app.controllers.questions_controller import QuestionsController
 from config.databases import DB
 from src.models.EmbeddingModel import EmbeddingModel
 from src.repositories.file_repository import FileRepository

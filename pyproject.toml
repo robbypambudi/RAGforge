@@ -1,0 +1,16 @@
+[project]
+name = "rag-template"
+version = "0.1.0"
+description = "A template for RAG (Retrieval-Augmented Generation) projects."
+authors = [
+    { name = "Robby Pambudi", email = "robby.pambudi10@gmail.com" }
+]
+keywords = ["RAG", "Retrieval-Augmented Generation", "Template"]
+
+[tool.setuptools]
+packages = ['rag', 'app', 'chroma']
+
+[tool.ruff]
+exclude = [
+    "chromadb",
+]

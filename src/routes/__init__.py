@@ -1,4 +1,5 @@
 from typing import List
+
 from fastapi import FastAPI
 
 from src.types.handler_request_type import HandlerRequestType
@@ -6,7 +7,7 @@ from src.types.handler_request_type import HandlerRequestType
 
 class RoutesRegister():
     """
-    Class to register routes
+    Class to register routers
     """
 
     def __init__(self, app: FastAPI):
@@ -14,7 +15,7 @@ class RoutesRegister():
 
     def register_routes(self, routes: List[HandlerRequestType]):
         """
-        Register routes
+        Register routers
         """
         for route in routes:
             if route.method == "GET":

@@ -1,7 +1,8 @@
 from typing import List
 
-from api.constants import Method
-from api.controllers.collection_controller import CollectionController
+from app.constants import Method
+
+from app.controllers.collection_controller import CollectionController
 from src.types.handler_request_type import HandlerRequestType
 
 

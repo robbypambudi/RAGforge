@@ -5,7 +5,7 @@ from typing import List
 import torch
 from langchain_community.vectorstores import FAISS
 
-from api.entities import Files
+from app.models import Files
 from src.models import EmbeddingModel
 from src.services.storage.files_storage_service import FileStorageService
 

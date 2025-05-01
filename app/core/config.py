@@ -1,3 +1,4 @@
+import logging
 import secrets
 from typing import Any, Literal, Annotated
 
@@ -14,6 +15,18 @@ def parse_cors(v: Any) -> list[str] | str:
     raise ValueError(v)
 
 
+def load_env() -> None:
+    """
+    Load environment variables from .env file
+    """
+    from dotenv import load_dotenv
+    import os
+
+    env_path = os.path.join(os.path.dirname(__file__), '../../.env')
+    load_dotenv(env_path)
+    logging.log(1, f"Loaded environment variables from {env_path}")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file='../../.env',
@@ -21,7 +34,7 @@ class Settings(BaseSettings):
         extra='ignore'
     )
 
-    API_V1: str = "/api/v1"
+    API_V1_STR: str = "/app"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     FRONTEND_HOST: str = "http://localhost:3000"
 
@@ -48,13 +61,13 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> MultiHostUrl:
         return MultiHostUrl.build(
-            scheme="postgresql+asyncpg",
+            scheme="postgresql",
             host=self.POSTGRES_SERVER,
             port=self.POSTGRES_PORT,
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
-            path=f"/{self.POSTGRES_DB}",
+            path=f"{self.POSTGRES_DB}",
         )
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
