@@ -31,17 +31,16 @@ class DefaultEmbedding(Base):
     _model_name = None
     _model_lock = threading.Lock()
 
-    def __init__(self, key, model_name):
+    def __init__(self):
         """
         Initialize the embedding model with the provided key and model name.
         """
-        if not DefaultEmbedding._model or model_name != DefaultEmbedding._model_name:
+        if DefaultEmbedding._model is None:
             try:
                 # Memuat model dan tokenizer dari HuggingFace
                 from sentence_transformers import SentenceTransformer
 
                 # Menggunakan model Linq-Embed-Mistral
-                DefaultEmbedding._model_name = model_name
                 DefaultEmbedding._model = SentenceTransformer("Linq-AI-Research/Linq-Embed-Mistral",
                                                               device='cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -66,3 +65,9 @@ class DefaultEmbedding(Base):
         with DefaultEmbedding._model_lock:
             return DefaultEmbedding._model.encode(queries, show_progress_bar=False, convert_to_tensor=True,
                                                   device='cuda' if torch.cuda.is_available() else 'cpu')
+
+    def get_embedding_model(self):
+        """
+        Get the embedding model
+        """
+        return DefaultEmbedding._model
