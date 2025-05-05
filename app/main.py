@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
 from urllib.request import Request
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
@@ -15,14 +17,14 @@ from app.utils.class_object import singleton
 class App:
     def __init__(self):
         # Initialize the app
+        self.container = Container()
+
         self.app = FastAPI(
             title=settings.PROJECT_NAME,
             openapi_url=f"{settings.API_V1_STR}/openapi.json",
-            version="2.1.0"
+            version="2.1.0",
+            lifespan=self.lifespan,
         )
-
-        self.container = Container()
-        self.db = self.container.db()
 
         if settings.BACKEND_CORS_ORIGINS:
             self.app.add_middleware(
@@ -54,8 +56,21 @@ class App:
         # include routers
         self.app.include_router(v1_routers, prefix='/api', tags=["v1"])
 
+    @asynccontextmanager
+    async def lifespan(self, app: FastAPI):
+        """
+        Application startup and shutdown events.
+        """
+        logger.info("Starting up the application...")
+        self.db = self.container.db()
+        self.chroma = self.container.chromadb_client()
+        self.model = self.container.embedding_model()
+        yield
+        # Shutdown
+        logger.info("Shutting down the application...")
+        self.db.close()
+        self.model.close()
+
 
 app_creator = App()
 app = app_creator.app
-db = app_creator.db
-container = app_creator.container

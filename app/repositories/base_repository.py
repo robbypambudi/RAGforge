@@ -40,14 +40,12 @@ class BaseRepository:
                     query = query.options(joinedload(self.model, eager))
 
             query = query.filter(filter_options)
-
+            total_count = query.count()
             if page_size == 'all':
                 query = query.all()
             else:
                 page_size = int(page_size)
                 query = query.limit(page_size).offset((page - 1) * page_size).all()
-
-            total_count = query.count(0)
 
             return {
                 "metadata": {

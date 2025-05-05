@@ -1,32 +1,24 @@
 from chromadb.errors import InvalidArgumentError
-from fastapi import Depends
 
 from app.core.exceptions import ValidationError
 from app.repositories import CollectionRepository
 from app.schema.collection_schema import CreateCollectionRequest
 from app.services.base_service import BaseService
-from rag.chroma.client import ChromaDBHttpClientService
-from rag.llm import EmbeddingModelFactory
+from rag.chroma.client import ChromaDBHttpClient
 
 
 class CollectionService(BaseService):
     """
     Collection service class for handling collection-related operations.
     """
-    chromadb_client_service: ChromaDBHttpClientService = Depends()
-    embedding_model: EmbeddingModelFactory.get_embedding_model("LingAI") = Depends(
-        EmbeddingModelFactory.get_embedding_model("LingAI"))
 
-    def __init__(self, collection_repository: CollectionRepository) -> None:
+    def __init__(self, collection_repository: CollectionRepository, chromadb_client: ChromaDBHttpClient,
+                 embedding_model) -> None:
         self.collection_repository = collection_repository
 
         # Initialize the chromadb client service
-        self.chromadb_client_service = ChromaDBHttpClientService()
-        # self.embedding_model = EmbeddingModelFactory.get_embedding_model("LingAI")()
-        #
-        # # Check heartbeat of ChromaDB server
-        # if not self.chromadb_client_service.heartbeat():
-        #     raise Exception("ChromaDB server is not running or unreachable.")
+        self.embedding_model = embedding_model
+        self.chromadb_client = chromadb_client
         super().__init__(collection_repository)
 
     def create(self, payload: CreateCollectionRequest) -> CreateCollectionRequest:
@@ -38,11 +30,16 @@ class CollectionService(BaseService):
         collection = self.collection_repository.create(payload)
         try:
             # Create in repository first
-            # print("Embedding model:", self.embedding_model.get_embedding_model())
             # Create ChromaDB collection
-            self.chromadb_client_service.create_collection(
+            # print("Embedding model:", self.embedding_model.get_embedding_model())
+            self.chromadb_client.create_collection(
                 collection_name=collection.collection_name,
-                embedding_function=self.embedding_model.get_embedding_model(),
+                metadata={
+                    "id": collection.id,
+                    "description": collection.description,
+                    "created_at": collection.created_at,
+                },
+                embedding_function=self.embedding_model
             )
 
             return collection

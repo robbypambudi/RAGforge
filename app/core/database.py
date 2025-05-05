@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import Any, Generator
 
+from loguru import logger
 from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import Session
@@ -24,6 +25,7 @@ class BaseModel:
 
 class Database:
     def __init__(self, db_url: str):
+        logger.info('Creating database engine with URL: %s', db_url)
         self._engine = create_engine(db_url, echo=True)
         self._session_factory = orm.scoped_session(
             orm.sessionmaker(
@@ -45,3 +47,8 @@ class Database:
             raise
         finally:
             session.close()
+
+    def close(self):
+        """Close the database connection."""
+        self._session_factory.remove()
+        self._engine.dispose()

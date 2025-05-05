@@ -37,7 +37,6 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/app"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     FRONTEND_HOST: str = "http://localhost:3000"
-
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     BACKEND_CORS_ORIGINS: Annotated[
