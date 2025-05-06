@@ -1,17 +1,21 @@
 from typing import List
 
 import numpy as np
+from chromadb import Documents, EmbeddingFunction
 from loguru import logger
 from sentence_transformers import SentenceTransformer
 
-from rag.embedding import BaseEmbeddingModel
 
-
-class DefaultEmbedding(BaseEmbeddingModel):
+class DefaultEmbedding(EmbeddingFunction):
     def __init__(self, device: str = 'cpu'):
         # Initialize the SentenceTransformer model
         logger.info('Initializing default embedding model')
         self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device=device)
+
+    def __call__(self, input: Documents) -> np.ndarray:
+        # Encode a single text into a vector
+        vector = self.encode(input)
+        return vector
 
     def encode(self, text: str) -> np.ndarray:
         # Encode a single text into a vector

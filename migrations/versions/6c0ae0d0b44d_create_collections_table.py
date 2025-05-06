@@ -31,6 +31,7 @@ def upgrade() -> None:
 
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('collection_name')
+
     )
 
 

@@ -1,20 +1,21 @@
 import uuid
+from typing import Optional
 
 from pydantic import BaseModel
 
 from app.schema.base_schema import FindBase
-from app.utils.schema import AllOptional, as_form
+from app.utils.schema import as_form
 
 
 class BaseCollection(BaseModel):
     collection_name: str
-    description: str
+    description: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 
-class FindCollection(FindBase, BaseCollection, metaclass=AllOptional): ...
+class FindCollection(FindBase, BaseCollection): ...
 
 
 class ListCollection(BaseCollection):

@@ -4,6 +4,7 @@ from urllib.request import Request
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
+from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
@@ -39,11 +40,28 @@ class App:
         def root():
             return {"message": "Welcome to the FastAPI application!"}
 
+        # Handle request body validation (e.g., missing fields, wrong types)
         @self.app.exception_handler(RequestValidationError)
-        async def validation_exception_handler(_request: Request, exc: RequestValidationError):
+        async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+            print(exc.errors())
             errors = [
                 {
-                    "field": ".".join(map(str, err["loc"][1:])),  # skip 'body'
+                    "field": ".".join(str(loc) for loc in err["loc"][1:]),  # skip 'body'
+                    "message": err["msg"]
+                }
+                for err in exc.errors()
+            ]
+            return JSONResponse(
+                status_code=422,
+                content={"errors": errors}
+            )
+
+        @self.app.exception_handler(ValidationError)
+        async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
+            print(exc.errors())
+            errors = [
+                {
+                    "field": ".".join(str(loc) for loc in err["loc"]),
                     "message": err["msg"]
                 }
                 for err in exc.errors()

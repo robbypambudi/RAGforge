@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class FindBase(BaseModel):
-    ordering: str = None
+    ordering: Optional[str] = None
     page: int = None
     page_size: Optional[Union[int, str]] = 10
 

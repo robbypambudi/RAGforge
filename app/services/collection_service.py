@@ -39,7 +39,7 @@ class CollectionService(BaseService):
                     "description": collection.description,
                     "created_at": collection.created_at,
                 },
-                embedding_function=self.embedding_model
+                embedding_function=self.embedding_model,
             )
 
             return collection
@@ -58,7 +58,7 @@ class CollectionService(BaseService):
         """
         try:
             # Get documents from ChromaDB
-            documents = self.chromadb_client_service.get_documents(
+            documents = self.chromadb_client.get_documents(
                 collection_name=collection_name,
             )
             return documents
