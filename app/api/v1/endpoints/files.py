@@ -1,9 +1,11 @@
 from dependency_injector.wiring import Provide
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 
 from app.core.container import Container
 from app.core.middleware import inject
-from app.schema.file_schema import FindFiles, CreateFileRequest
+from app.pipeline.pipeline_service import PipelineService
+from app.schema.base_schema import BaseResponse
+from app.schema.file_schema import FindFiles, CreateFileRequest, ResponseFiles
 from app.services.files_service import FilesService
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -22,13 +24,26 @@ def index(
 
 
 # Create a new file
-@router.post("", tags=["post"])
+@router.post("", tags=["post"], response_model=BaseResponse[ResponseFiles])
 @inject
 def create(
+        background_tasks: BackgroundTasks,
         payload: CreateFileRequest = Depends(),
-        service: FilesService = Depends(Provide[Container.files_service])
+        service: FilesService = Depends(Provide[Container.files_service]),
+        pipeline_service: PipelineService = Depends(Provide[Container.pipeline_service])
 ):
     """
     Create a new file
     """
-    return service.create(payload)
+    response = service.create(payload)
+
+    # Add the file to the pipeline
+    background_tasks.add_task(
+        pipeline_service.run_pipeline,
+        files=response
+    )
+
+    return BaseResponse(
+        message="File created successfully",
+        data=response
+    )

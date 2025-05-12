@@ -87,7 +87,6 @@ class App:
         # Shutdown
         logger.info("Shutting down the application...")
         self.db.close()
-        self.model.close()
 
 
 app_creator = App()

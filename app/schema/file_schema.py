@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 from fastapi import UploadFile, File, Form
@@ -11,7 +12,7 @@ class BaseFile(BaseModel):
     file_path: Optional[str] = None
     file_type: Optional[str] = None
     file_size: Optional[int] = None
-    collection_id: Optional[int] = None
+    collection_id: Optional[uuid.UUID] = None
 
     class Config:
         from_attributes = True
@@ -23,8 +24,18 @@ class FindFiles(FindBase, BaseFile): ...
 class CreateFileRequest:
     def __init__(
             self,
-            file_name: str = Form(...),
+            collection_id: uuid.UUID = Form(...),
             file: UploadFile = File(...)
     ):
-        self.file_name = file_name
         self.file = file
+        self.collection_id = collection_id
+
+
+class ResponseFiles(BaseModel):
+    id: uuid.UUID
+    file_name: str
+    file_path: str
+    file_type: str
+    file_size: int
+    status: str
+    collection_id: uuid.UUID

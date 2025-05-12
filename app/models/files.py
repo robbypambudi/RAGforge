@@ -1,5 +1,8 @@
+import uuid
+from typing import Optional
+
 import sqlalchemy as sa
-from sqlmodel import Field, Column, JSON
+from sqlmodel import Field, Column, JSON, Relationship
 
 from app.models import BaseModel
 
@@ -16,7 +19,11 @@ class Files(BaseModel, table=True):
                                          nullable=False))
     processing_started_at: str = Field(default=None, nullable=True)
     processing_ended_at: str = Field(default=None, nullable=True)
-    collection_id: int = Field(foreign_key="collections.id", nullable=False)
+    collection_id: uuid.UUID = Field(foreign_key="collections.id", nullable=False)
+
+    collection: Optional["Collections"] = Relationship(
+        back_populates="files",
+    )
 
     def normalize(self):
         self.file_name = self.file_name.lower()

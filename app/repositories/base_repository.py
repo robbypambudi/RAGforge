@@ -76,9 +76,16 @@ class BaseRepository:
                 session.commit()
                 session.refresh(query)
             except IntegrityError as e:
-                raise DuplicatedError(
-                    detail=f"{self.model.__name__} with {schema.collection_name} already exists") from e
+                raise DuplicatedError(detail=str(e.orig))
             return query
+
+    def update(self, id: uuid.UUID, schema: T) -> T:
+        with self.session_factory() as session:
+            session.query(self.model).filter(self.model.id == id).update(
+                schema.model_dump(exclude_none=True, exclude={"id", "created_at"})
+            )
+            session.commit()
+            return self.read_by_id(id)
 
     def delete_by_id(self, id: uuid.UUID):
         with self.session_factory() as session:
@@ -87,3 +94,19 @@ class BaseRepository:
                 raise NotFoundError(detail=f"{self.model.__name__} with id {id} not found")
             session.delete(query)
             session.commit()
+
+    def update_attr(self, id: uuid.UUID, attr: str, value: str) -> T:
+        with self.session_factory() as session:
+            query = session.query(self.model).filter(self.model.id == id).first()
+            if not query:
+                raise NotFoundError(detail=f"{self.model.__name__} with id {id} not found")
+            setattr(query, attr, value)
+            session.commit()
+            session.refresh(query)
+            return query
+
+    def whole_update(self, id: uuid.UUID, schema: T) -> T:
+        with self.session_factory() as session:
+            session.query(self.model).filter(self.model.id == id).update(schema.model_dump(exclude_none=True))
+            session.commit()
+            return self.read_by_id(id)

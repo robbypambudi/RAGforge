@@ -2,9 +2,12 @@ from dependency_injector import containers, providers
 
 from app.core.config import settings
 from app.core.database import Database
+from app.pipeline.pipeline_service import PipelineService
 from app.repositories import CollectionRepository
+from app.repositories.files_repository import FilesRepository
 from app.services.collection_service import CollectionService
 from app.services.files_service import FilesService
+from app.services.question_service import QuestionService
 from rag.chroma.client import ChromaDBHttpClient
 from rag.embedding.embedding_factory import EmbeddingFactory
 
@@ -29,9 +32,12 @@ class Container(containers.DeclarativeContainer):
 
     # Repository layer
     collection_repository = providers.Factory(CollectionRepository, session_factory=db.provided.session)
-    files_repository = providers.Factory(CollectionRepository, session_factory=db.provided.session)
+    files_repository = providers.Factory(FilesRepository, session_factory=db.provided.session)
 
     # Service layer
+    pipeline_service = providers.Factory(PipelineService, files_repository=files_repository,
+                                         chromadb_client=chromadb_client)
     collection_service = providers.Factory(CollectionService, collection_repository=collection_repository,
                                            chromadb_client=chromadb_client, embedding_model=embedding_model)
     files_service = providers.Factory(FilesService, files_repository=files_repository)
+    question_service = providers.Factory(QuestionService, chromadb_client=chromadb_client)

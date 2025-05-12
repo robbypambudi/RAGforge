@@ -1,6 +1,7 @@
 import logging
+import os
 import secrets
-from typing import Any, Literal, Annotated
+from typing import Any, Literal, Annotated, ClassVar
 
 from pydantic import (AnyUrl, BeforeValidator, computed_field, HttpUrl)
 from pydantic_core import MultiHostUrl
@@ -33,6 +34,8 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra='ignore'
     )
+
+    FILE_PATH: ClassVar['str'] = os.path.dirname(__file__) + "/../files"
 
     API_V1_STR: str = "/app"
     SECRET_KEY: str = secrets.token_urlsafe(32)
