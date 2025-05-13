@@ -46,6 +46,12 @@ class QuestionsService(BaseService):
                                              query_texts=quries, include=["documents", "embeddings"])
         retrieved_documents = results["documents"]
 
+        # Check is retrieved_documents is empty
+        # Example : "retrieved_documents": [[], [], []]
+        if not any(retrieved_documents):
+            logger.debug("Empty retrieved documents")
+            return [[payload.question_text, "Tidak ada jawaban yang ditemukan."]]
+
         unique_documents = set()
         for documents in retrieved_documents:
             for doc in documents:

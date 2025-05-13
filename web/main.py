@@ -58,6 +58,10 @@ class ChatBotApp:
     def _render_sidebar(self):
         with st.sidebar:
             st.title("💬 Selamat Datang!")
+            st.write(
+                "Sebuah chatbot yang dirancang untuk membantu Anda menjawab pertanyaan dengan cepat dan akurat.")
+            # Author
+
             st.markdown("---")
             st.write("🔍 Silakan pilih koleksi yang ingin Anda gunakan untuk bertanya.")
 
@@ -90,6 +94,12 @@ class ChatBotApp:
             else:
                 st.error("❌ Gagal mengambil data koleksi.")
 
+            st.markdown("---")
+            st.write(
+                "Dibuat untuk mendapatkan gelar teknik informatika di [Institut Teknologi Sepuluh Nopember Surabaya](https://www.its.ac.id/)")
+            st.write("👨‍🎓 Robby Pambudi - TC21")
+            # Github
+
     def _append_message(self, role: str, content: str):
         st.session_state["chat_histories"][self.user_id].append({
             "role": role,
@@ -98,7 +108,7 @@ class ChatBotApp:
 
     def display_messages(self, role: str, content):
         with st.chat_message(role):
-            st.markdown(content)
+            st.markdown(content, unsafe_allow_html=True)
 
     def _handle_input(self):
         user_input = st.chat_input("💭 Tanyakan sesuatu...")
@@ -147,12 +157,13 @@ class ChatBotApp:
                         text = chunk.decode("utf-8").removeprefix("data: ")
                         full_response += text
                         placeholder.markdown(
-                            full_response
+                            full_response,
+                            unsafe_allow_html=True,
                         )
 
                 if not full_response:
                     full_response = "⚠️ Tidak ada jawaban dari server."
-                    placeholder.markdown(full_response)
+                    placeholder.markdown(full_response, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error(f"❌ Gagal menghubungi server: {e}")
@@ -163,6 +174,36 @@ class ChatBotApp:
 
     def run(self):
         self._render_sidebar()
+        if self.collection_name and self.collection_description:
+            st.markdown(f"""
+                <div style="
+                    background: linear-gradient(to right, #2980B9, #6DD5ED);
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    margin-bottom: 10px;
+                ">
+                    <h3 style="margin-bottom: 5px;">📂 Koleksi Aktif: <span style="color: #F9E79F;">{self.collection_name}</span></h3>
+                    <p style="margin: 0; font-size: 15px;">{self.collection_description}</p>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+                    <div style="
+                        background-color: #FDEDEC;
+                        padding: 16px;
+                        border-left: 5px solid #E74C3C;
+                        border-radius: 8px;
+                        color: #C0392B;
+                        font-weight: 500;
+                    ">
+                        ⚠️ <strong>Belum ada koleksi yang dipilih.</strong> Silakan pilih koleksi terlebih dahulu untuk memulai chat.
+                    </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("<hr style='margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+
         self.display_chat_history()
         self._handle_input()
 
