@@ -1,25 +1,25 @@
 from chromadb.errors import InvalidArgumentError
 
 from app.core.exceptions import ValidationError
-from app.repositories import CollectionRepository
+from app.repositories import CollectionsRepository
 from app.schema.collection_schema import CreateCollectionRequest
 from app.services.base_service import BaseService
 from rag.chroma.client import ChromaDBHttpClient
 
 
-class CollectionService(BaseService):
+class CollectionsService(BaseService):
     """
     Collection service class for handling collection-related operations.
     """
 
-    def __init__(self, collection_repository: CollectionRepository, chromadb_client: ChromaDBHttpClient,
+    def __init__(self, collections_repository: CollectionsRepository, chromadb_client: ChromaDBHttpClient,
                  embedding_model) -> None:
-        self.collection_repository = collection_repository
+        self.collections_repository = collections_repository
 
         # Initialize the chromadb client service
         self.embedding_model = embedding_model
         self.chromadb_client = chromadb_client
-        super().__init__(collection_repository)
+        super().__init__(collections_repository)
 
     def create(self, payload: CreateCollectionRequest) -> CreateCollectionRequest:
         """
@@ -27,7 +27,7 @@ class CollectionService(BaseService):
         If ChromaDB creation fails, repository record is deleted.
         """
 
-        collection = self.collection_repository.create(payload)
+        collection = self.collections_repository.create(payload)
         try:
             # Create in repository first
             # Create ChromaDB collection
@@ -45,11 +45,11 @@ class CollectionService(BaseService):
             return collection
         except InvalidArgumentError as e:
             # If ChromaDB creation fails, delete from repository
-            self.collection_repository.delete_by_id(collection.id)
+            self.collections_repository.delete_by_id(collection.id)
             raise ValidationError(detail=f"Collection name '{collection.collection_name}' is invalid. {str(e)}")
         except Exception as e:
             # If ChromaDB creation fails, delete from repository
-            self.collection_repository.delete_by_id(collection.id)
+            self.collections_repository.delete_by_id(collection.id)
             raise e
 
     def get_documents(self, collection_name: str) -> list:

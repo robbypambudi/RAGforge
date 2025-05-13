@@ -1,5 +1,6 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
+from loguru import logger
 
 
 class DocumentChunker:
@@ -19,6 +20,8 @@ class DocumentChunker:
             chunk_size=384,
             chunk_overlap=0,
         )
+        logger.info(
+            f"DocumentChunker initialized with chunk_size: {self.chunk_size}, chunk_overlap: {self.chunk_overlap}")
 
     def chunk_text(self, text: str) -> list:
         """

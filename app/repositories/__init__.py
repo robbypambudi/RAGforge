@@ -1,1 +1,1 @@
-from app.repositories.collection_repository import CollectionRepository
+from app.repositories.collections_repository import CollectionsRepository

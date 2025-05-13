@@ -1,13 +1,15 @@
 from dependency_injector import containers, providers
 
+from agents.augment_query_generated import AugmentQueryGenerated
 from app.core.config import settings
 from app.core.database import Database
 from app.pipeline.pipeline_service import PipelineService
-from app.repositories import CollectionRepository
+from app.repositories import CollectionsRepository
 from app.repositories.files_repository import FilesRepository
-from app.services.collection_service import CollectionService
+from app.repositories.questions_repository import QuestionsRepository
+from app.services.collection_service import CollectionsService
 from app.services.files_service import FilesService
-from app.services.question_service import QuestionService
+from app.services.question_service import QuestionsService
 from rag.chroma.client import ChromaDBHttpClient
 from rag.embedding.embedding_factory import EmbeddingFactory
 
@@ -15,6 +17,7 @@ from rag.embedding.embedding_factory import EmbeddingFactory
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=[
+            "app.api.v1.endpoints.questions",
             "app.api.v1.endpoints.collections",
             "app.api.v1.endpoints.files",
             "app.core.dependencies",
@@ -29,15 +32,20 @@ class Container(containers.DeclarativeContainer):
     )
     chromadb_client = providers.Singleton(ChromaDBHttpClient, host='localhost', port=8000)
     db = providers.Singleton(Database, db_url=str(settings.SQLALCHEMY_DATABASE_URI))
+    augment_query_generator = providers.Singleton(AugmentQueryGenerated, api_key=str(settings.OPENAI_API_KEY))
 
     # Repository layer
-    collection_repository = providers.Factory(CollectionRepository, session_factory=db.provided.session)
+    collections_repository = providers.Factory(CollectionsRepository, session_factory=db.provided.session)
     files_repository = providers.Factory(FilesRepository, session_factory=db.provided.session)
+    questions_repository = providers.Factory(QuestionsRepository, session_factory=db.provided.session)
 
     # Service layer
     pipeline_service = providers.Factory(PipelineService, files_repository=files_repository,
                                          chromadb_client=chromadb_client)
-    collection_service = providers.Factory(CollectionService, collection_repository=collection_repository,
+    collection_service = providers.Factory(CollectionsService, collections_repository=collections_repository,
                                            chromadb_client=chromadb_client, embedding_model=embedding_model)
     files_service = providers.Factory(FilesService, files_repository=files_repository)
-    question_service = providers.Factory(QuestionService, chromadb_client=chromadb_client)
+    question_service = providers.Factory(QuestionsService, questions_repository=questions_repository,
+                                         collections_repository=collections_repository,
+                                         chromadb_client=chromadb_client,
+                                         augment_query_generator=augment_query_generator)

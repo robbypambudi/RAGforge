@@ -8,7 +8,7 @@ authors = [
 keywords = ["RAG", "Retrieval-Augmented Generation", "Template"]
 
 [tool.setuptools]
-packages = ['rag', 'app', 'chroma']
+packages = ['rag', 'app', 'agents']
 
 [tool.ruff]
 exclude = [

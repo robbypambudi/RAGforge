@@ -56,7 +56,7 @@ class BaseRepository:
                 "data": query
             }
 
-    def read_by_id(self, id: int, eager: bool = False) -> T:
+    def read_by_id(self, id: uuid.UUID, eager: bool = False) -> T:
         with self.session_factory() as session:
             query = session.query(self.model)
             if eager:
@@ -70,7 +70,6 @@ class BaseRepository:
     def create(self, schema: T) -> T:
         with self.session_factory() as session:
             query = self.model(**schema.model_dump(exclude_none=True))
-            print("query", query)
             try:
                 session.add(query)
                 session.commit()

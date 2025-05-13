@@ -3,6 +3,7 @@ import unicodedata
 from string import punctuation
 
 import nltk
+from loguru import logger
 from nltk import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -18,6 +19,7 @@ class DocumentCleaner:
     def __init__(self):
         self.lemmatizer = WordNetLemmatizer()
         self.stop_words = set(stopwords.words('indonesian'))
+        logger.info('DocumentCleaner initialized with Indonesian stop words.')
 
     def normalize_unicode(self, text):
         """Normalize Unicode characters to their closest ASCII representation"""

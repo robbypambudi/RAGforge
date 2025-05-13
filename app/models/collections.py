@@ -10,6 +10,9 @@ class Collections(BaseModel, table=True):
     files: list["Files"] = Relationship(
         back_populates="collection",
     )
+    questions: list["Questions"] = Relationship(
+        back_populates="collection",
+    )
 
     def normalize(self):
         self.collection_name = self.collection_name.lower()

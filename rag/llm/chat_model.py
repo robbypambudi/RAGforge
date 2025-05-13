@@ -1,102 +1,105 @@
-import random
-from abc import ABC
+from typing import List, Dict, Generator
 
-import openai
-from openai import OpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+from loguru import logger
 
-from rag.utils import num_tokens_from_string
+prompt = """
+Kamu adalah seorang asisten yang ahli dan membantu pengguna dalam menjawab pertanyaan.
+Kamu harus memberikan jawaban yang akurat dan relevan berdasarkan pengetahuan yang kamu miliki.
+Pengguna akan memberikan pertanyaan, berdasarkan informasi yang diambil dari buku petunjuk teknis.
+Jawablah pertanyaan pengguna hanya berdasarkan informasi yang diberikan.
+Berikut adalah informasi yang diberikan:
+"""
 
 
-class Base(ABC):
-    def __init__(self, key, model_name, base_url):
-        timeout = 600
-        self.client = OpenAI(api_key=key, base_url=base_url, timeout=timeout)
-        self.model_name = model_name
-        self.max_retries = 5
-        self.base_delay = 2
-        self.is_tools = False
+class OpenAIChat:
+    """
+    Class untuk mengelola interaksi chat dengan OpenAI API.
+    """
 
-    def _get_delay(self, attempt):
+    def __init__(self, key: str, model_name: str = "gpt-3.5-turbo") -> None:
         """
-        Calculate the delay before the next retry based on the attempt number.
+        Inisialisasi OpenAIChat.
 
         Args:
-            attempt (int): The current attempt number.
+            key (str): OpenAI API key
+            model_name (str): Nama model OpenAI yang akan digunakan
+        """
+        self.chat_model = ChatOpenAI(
+            api_key=key,
+            model=model_name,
+            temperature=0.7
+        )
+        self.output_parser = StrOutputParser()
+        logger.info(f"OpenAIChat initialized with model: {model_name}")
+
+    def _prepare_messages(self, question: str, context_pairs: list[list]) -> List:
+        """
+        Menyiapkan pesan untuk chat.
+
+        Args:
+            question (str): Pertanyaan dari pengguna
+            context_pairs (List[Dict]): Daftar pasangan konteks (pertanyaan dan jawaban)
 
         Returns:
-            float: The delay in seconds.
+            List: Daftar pesan yang telah disiapkan
         """
-        return self.base_delay * (2 ** (attempt - 1) + random.uniform(0, 1))
+        messages = [
+            SystemMessage(content=prompt.strip()),
+        ]
 
-    def total_token_count(self, response) -> int:
+        # Menambahkan konteks dari pairs
+        context = ""
+        for pair in context_pairs:
+            context += f"Q: {pair[0]}\nA: {pair[1]}\n\n"
+        context = context.strip()
+
+        return messages + [
+            HumanMessage(content=f"{context}\n\nQ: {question}\nA:")
+        ]
+
+    def chat(self, question: str, context_pairs: list[list]) -> str:
         """
-        Calculate the total token count from the response.
+        Melakukan chat dengan mode normal (non-streaming).
 
         Args:
-            response: The response object from the OpenAI API.
+            question (str): Pertanyaan dari pengguna
+            context_pairs (str): Full answer dari model
 
         Returns:
-            int: The total token count.
+            str: Jawaban dari model
         """
         try:
-            return response.usage.total_tokens
-        except Exception:
-            pass
-        try:
-            return response["usage"]["total_tokens"]
-        except Exception:
-            pass
-        return 0
+            messages = self._prepare_messages(question, context_pairs)
+            response = self.chat_model.invoke(messages)
+            answer = self.output_parser.parse(response.content)
+            logger.info(f"Generated response for question: {question}")
+            return answer
+        except Exception as e:
+            logger.error(f"Error in chat: {str(e)}")
+            raise
 
-    def chat_streamly(self, system: str, history: list, gen_conf: dict):
+    async def chat_with_stream(self, question: str, context_pairs: List[list]):
         """
-        Generate a response using the OpenAI chat completion API with streaming.
+        Melakukan chat dengan mode streaming.
+
         Args:
-            system (str): The system message to set the context.
-            history (list): The conversation history.
-            gen_conf (dict): Additional generation configuration.
-        Yields:
-            str: The generated response.
-            int: The total token count.
+            question (str): Pertanyaan dari pengguna
+            context_pairs (List[list]): Daftar pasangan konteks
+
+        Returns:
+            Generator: Generator untuk streaming response
         """
-        if system:
-            history.insert(0, {"role": "system", "content": system})
-        if "max_tokens" in gen_conf:
-            del gen_conf["max_tokens"]
-
-        ans = ""
-        total_tokens = 0
-        reasoning_start = False
-
         try:
-            response = self.client.chat.completions.create(model=self.model_name, messages=hikstory, stream=True,
-                                                           **gen_conf)
-            for resp in response:
-                if not resp.choices:
-                    continue
-                if not resp.choices[0].delta.content:
-                    resp.choices[0].delta.content = ""
-                if hasattr(resp.choices[0].delta, "reasoning_content" and resp.choices[0].delta.reasoning_content):
-                    ans = ""
-                    if not reasoning_start:
-                        reasoning_start = True
-                        ans = "<think>"
-                    ans += resp.choices[0].delta.reasoning_content + "</think>"
-                else:
-                    reasoning_start = False
-                    ans += resp.choices[0].delta.content
-
-                temp_total_tokens = self.total_token_count(resp)
-
-                if not total_tokens:
-                    total_tokens += num_tokens_from_string(resp.choices[0].delta.content)
-                else:
-                    total_tokens += temp_total_tokens
-
-                if resp.choices[0].finish_reason == "length":
-                    ans += "...\n Jawaban akan terpotong oleh LLM yang Anda pilih karena keterbatasannya dalam hal panjang konteks."
-                yield ans
-        except openai.APIError as e:
-            yield ans + f"API Error: {str(e)}"
-
-        yield total_tokens
+            messages = self._prepare_messages(question, context_pairs)
+            async for chunk in self.chat_model.astream(messages):
+                if chunk.content:
+                    processed_chunk = self.output_parser.parse(chunk.content)
+                    logger.debug(f"Streaming chunk: {processed_chunk}")
+                    yield processed_chunk
+        except Exception as e:
+            error_msg = f"Error in chat streaming: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
