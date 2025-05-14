@@ -113,3 +113,9 @@ class QuestionsService(BaseService):
         except Exception as e:
             logger.error(f"Error in question_stream: {str(e)}")
             yield {"error": str(e)}
+
+    def clear_all(self):
+        """
+        Clear all questions from the database.
+        """
+        self.question_repository.clear_all()

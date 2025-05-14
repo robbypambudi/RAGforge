@@ -1,3 +1,5 @@
+import uuid
+
 from dependency_injector.wiring import Provide
 from fastapi import APIRouter, Depends, BackgroundTasks
 
@@ -46,4 +48,33 @@ def create(
     return BaseResponse(
         message="File created successfully",
         data=response
+    )
+
+
+@router.delete("/{file_id}", tags=["delete"])
+@inject
+def delete(
+        file_id: uuid.UUID,
+        service: FilesService = Depends(Provide[Container.files_service])
+):
+    """
+    Delete a file
+    """
+    return service.remove_by_id(file_id)
+
+
+@router.get("/{file_id}", tags=["get"])
+@inject
+def get_file(
+        file_id: uuid.UUID,
+        service: FilesService = Depends(Provide[Container.files_service])
+):
+    """
+    Get a file by ID
+    """
+    file = service.get_by_id(file_id)
+
+    return BaseResponse(
+        message="File retrieved successfully",
+        data=file
     )

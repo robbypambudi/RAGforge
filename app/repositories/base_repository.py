@@ -109,3 +109,8 @@ class BaseRepository:
             session.query(self.model).filter(self.model.id == id).update(schema.model_dump(exclude_none=True))
             session.commit()
             return self.read_by_id(id)
+
+    def clear_all(self):
+        with self.session_factory() as session:
+            session.query(self.model).delete()
+            session.commit()

@@ -51,3 +51,19 @@ def get_collection(
         message="Collection retrieved successfully",
         data=collection
     )
+
+
+@router.delete("/{collection_name}", tags=["delete"])
+@inject
+def delete_collection(
+        collection_name: str,
+        service: CollectionsService = Depends(Provide[Container.collection_service])):
+    """
+    Delete a collection by name
+    """
+    service.delete_collection(collection_name=collection_name)
+
+    return BaseResponse(
+        message="Collection deleted successfully",
+        data=None
+    )

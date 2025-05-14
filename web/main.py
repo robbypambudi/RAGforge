@@ -141,7 +141,7 @@ class ChatBotApp:
                 response = requests.post(
                     f"{Config.BACKEND_URL}/api/v1/questions/stream",
                     data={
-                        "question_id": self.user_id,
+                        "question_id": f"{self.user_id}_{self.collection_id}_{int(time.time())}",
                         "question_text": user_input,
                         "collection_id": self.collection_id,
                         "using_augment_query": True,

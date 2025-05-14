@@ -1,3 +1,4 @@
+from asyncpg import NotNullViolationError
 from chromadb.errors import InvalidArgumentError
 
 from app.core.exceptions import ValidationError
@@ -64,4 +65,26 @@ class CollectionsService(BaseService):
             return documents
 
         except Exception as e:
+            raise e
+
+    def delete_collection(self, collection_name: str) -> None:
+        """
+        Delete a collection from ChromaDB and the repository.
+        """
+        try:
+            collection = self.collections_repository.get_by_name(collection_name)
+
+            # Get the collection ID from the repository
+            # Delete from repository
+            self.collections_repository.delete_by_id(collection.id)
+
+            # Delete from ChromaDB
+            self.chromadb_client.delete_collection(collection_name=collection_name)
+
+        except InvalidArgumentError as e:
+            raise ValidationError(detail=f"Collection name '{collection_name}' is invalid. {str(e)}")
+        except NotNullViolationError as e:
+            raise ValidationError(detail=f"Collection name '{collection_name}' is invalid. {str(e)}")
+        except Exception as e:
+            # If ChromaDB deletion fails, delete from repository
             raise e

@@ -12,3 +12,10 @@ class CollectionsRepository(BaseRepository, RepositoryProtocol):
     def __init__(self, session_factory: Callable[..., AbstractContextManager[Session]]):
         self.session_factory = session_factory
         super().__init__(session_factory, Collections)
+
+    def get_by_name(self, name: str) -> Collections:
+        """
+        Get a collection by name.
+        """
+        with self.session_factory() as session:
+            return session.query(Collections).filter(Collections.collection_name == name).first()

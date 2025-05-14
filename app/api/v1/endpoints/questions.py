@@ -44,3 +44,18 @@ async def question_stream(
         question_service.question_stream(payload),
         media_type="text/event-stream"
     )
+
+
+@router.delete('/clear-all', tags=['delete-all'])
+@inject
+def clear_all(
+        question_service: QuestionsService = Depends(Provide[Container.question_service])
+):
+    """
+    Clear all questions
+    """
+    question_service.clear_all()
+    return BaseResponse(
+        message="All questions cleared successfully",
+        data=None
+    )
