@@ -30,7 +30,7 @@ class Container(containers.DeclarativeContainer):
         lambda factory: factory.get("Default"),
         embedding_factory,
     )
-    chromadb_client = providers.Singleton(ChromaDBHttpClient, host='localhost', port=8000)
+    chromadb_client = providers.Singleton(ChromaDBHttpClient, host='localhost', port=9000)
     db = providers.Singleton(Database, db_url=str(settings.SQLALCHEMY_DATABASE_URI))
     augment_query_generator = providers.Singleton(AugmentQueryGenerated, api_key=str(settings.OPENAI_API_KEY))
 

@@ -1,9 +1,10 @@
 from typing import List, Dict, Generator
 
-from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import ChatOpenAI
 from loguru import logger
+from openai import OpenAI
+
+# from langchain_openai import ChatOpenAI
 
 prompt = """
 Kamu adalah chatbot interaktif bernama InformatikBot.
@@ -46,11 +47,14 @@ class OpenAIChat:
             key (str): OpenAI API key
             model_name (str): Nama model OpenAI yang akan digunakan
         """
-        self.chat_model = ChatOpenAI(
-            api_key=key,
-            model=model_name,
-            temperature=0.7
-        )
+        # self.chat_model = ChatOpenAI(
+        #     api_key=key,
+        #     model=model_name,
+        #     temperature=0.7
+        # )
+        self.model_name = model_name
+        self.chat_model = OpenAI(base_url='https://api.openai.com/v1', api_key=key, timeout=300, max_retries=3)
+
         self.output_parser = StrOutputParser()
         logger.info(f"OpenAIChat initialized with model: {model_name}")
 
@@ -66,7 +70,7 @@ class OpenAIChat:
             List: Daftar pesan yang telah disiapkan
         """
         messages = [
-            SystemMessage(content=prompt.strip()),
+            {"role": "system", "content": prompt.strip()},
         ]
 
         # Menambahkan konteks dari pairs
@@ -75,9 +79,11 @@ class OpenAIChat:
             context += f"Q: {pair[0]}\nA: {pair[1]}\n\n"
         context = context.strip()
 
-        return messages + [
-            HumanMessage(content=f"{context}\n\nQ: {question}\nA:")
-        ]
+        messages.append(
+            {"role": "user", "content": f"{context}\n\nQ: {question}\nA:"}
+        )
+
+        return messages
 
     def chat(self, question: str, context_pairs: list[list]) -> str:
         """
@@ -117,6 +123,29 @@ class OpenAIChat:
                 if chunk.content:
                     processed_chunk = self.output_parser.parse(chunk.content)
                     yield processed_chunk
+        except Exception as e:
+            error_msg = f"Error in chat streaming: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+
+    async def chat_with_custom_api_stream(self, question: str, context_pairs: list[list]):
+        messages = self._prepare_messages(question, context_pairs)
+
+        try:
+            # Use OpenAI's Chat Completion with Streaming
+            response = self.chat_model.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                stream=True
+            )
+
+            # Stream each chunk received from the API
+
+            for chunk in response:
+                if chunk.choices[0].delta.content is not None:
+                    processed_chunk = self.output_parser.parse(chunk.choices[0].delta.content)
+                    yield processed_chunk
+
         except Exception as e:
             error_msg = f"Error in chat streaming: {str(e)}"
             logger.error(error_msg)
