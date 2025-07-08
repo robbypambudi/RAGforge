@@ -1,10 +1,10 @@
 from typing import List, Dict, Generator
 
 from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
 from loguru import logger
-from openai import OpenAI
 
-# from langchain_openai import ChatOpenAI
+# from openai import OpenAI
 
 prompt = """
 Kamu adalah chatbot interaktif bernama InformatikBot.
@@ -16,6 +16,9 @@ Pengguna akan memberikan pertanyaan, berdasarkan informasi yang diambil dari buk
 - Jawablah pertanyaan pengguna **sebisa mungkin berdasarkan informasi yang diberikan.** Jika diperlukan, kamu boleh menggunakan pengetahuan tambahan selama masih relevan dan dapat dipercaya.
 - Namun, jika informasi benar-benar tidak tersedia, barulah katakan: "Maaf, saya tidak memiliki informasi yang cukup untuk menjawab pertanyaan ini."
 
+"""
+
+use_html_prompt = """
 **Instruksi tambahan:**
 - Tulis jawaban dalam format HTML agar mudah ditampilkan di halaman web.
 - Gunakan tag HTML seperti `<ol>`, `<ul>`, `<li>` `<p>`, `<h3>`, `<h4>`, `<b`>, dan `<br>` untuk membuat penomoran dan poin yang rapi.
@@ -53,12 +56,12 @@ class OpenAIChat:
         #     temperature=0.7
         # )
         self.model_name = model_name
-        self.chat_model = OpenAI(base_url='https://api.openai.com/v1', api_key=key, timeout=300, max_retries=3)
+        self.chat_model = ChatOpenAI(base_url='https://api.openai.com/v1', api_key=key, timeout=300, max_retries=3)
 
         self.output_parser = StrOutputParser()
         logger.info(f"OpenAIChat initialized with model: {model_name}")
 
-    def _prepare_messages(self, question: str, context_pairs: list[list]) -> List:
+    def _prepare_messages(self, question: str, context_pairs: list[list], is_html: bool = True) -> List:
         """
         Menyiapkan pesan untuk chat.
 
@@ -75,6 +78,8 @@ class OpenAIChat:
 
         # Menambahkan konteks dari pairs
         context = ""
+        if is_html:
+            context += use_html_prompt + "\n\n"
         for pair in context_pairs:
             context += f"Q: {pair[0]}\nA: {pair[1]}\n\n"
         context = context.strip()
@@ -97,7 +102,7 @@ class OpenAIChat:
             str: Jawaban dari model
         """
         try:
-            messages = self._prepare_messages(question, context_pairs)
+            messages = self._prepare_messages(question, context_pairs, False)
             response = self.chat_model.invoke(messages)
             answer = self.output_parser.parse(response.content)
             logger.info(f"Generated response for question: {question}")

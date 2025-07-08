@@ -10,7 +10,7 @@ class DefaultEmbedding(EmbeddingFunction):
     def __init__(self, device: str = 'cpu'):
         # Initialize the SentenceTransformer model
         logger.info('Initializing default embedding model')
-        self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device=device)
+        self.model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2", device=device)
 
     def __call__(self, input: Documents) -> np.ndarray:
         # Encode a single text into a vector
