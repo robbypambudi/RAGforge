@@ -1,8 +1,10 @@
 from datetime import datetime
 
+import chromadb.utils.embedding_functions as embedding_functions
 from loguru import logger
 from pypdf import PdfReader
 
+from app.core.config import settings
 from app.models.files import Files
 from app.repositories.files_repository import FilesRepository
 from rag.chroma.client import ChromaDBHttpClient
@@ -28,6 +30,10 @@ def read_pdf(file_path: str):
 class PipelineService:
     doc_cleaner = DocumentCleaner()
     doc_chunker = DocumentChunker()
+    huggingface_ef = embedding_functions.HuggingFaceEmbeddingFunction(
+        api_key=settings.HUGGINGFACE_API_KEY,
+        model_name="sentence-transformers/all-mpnet-base-v2"
+    )
 
     def __init__(self, files_repository: FilesRepository, chromadb_client: ChromaDBHttpClient):
         self.file_repository = files_repository
@@ -50,7 +56,8 @@ class PipelineService:
             logger.info("Updated file status to processing for file: {}", files.id)
 
             # Simulate pipeline processing
-            clean_text = self.doc_cleaner.clean_document(read_pdf(files.file_path))
+            # clean_text = self.doc_cleaner.clean_document(read_pdf(files.file_path))
+            clean_text = read_pdf(files.file_path)
             logger.info("Cleaned text for file: {}", files.id)
             chunks = self.doc_chunker.chunk_text(clean_text)
             logger.info("Chunked text for file: {}", files.id)
@@ -69,11 +76,13 @@ class PipelineService:
                     "file_name": files.file_name,
                 } for text in chunks
             ]
+            logger.info("Preparing to add chunks to ChromaDB for file: {}", files.id)
             self.chromadb_client.add_documents(
                 ids=ids,
                 documents=chunks,
                 metadatas=metadata,
                 collection_name=collection_name,
+                # embedding_function=self.huggingface_ef
             )
 
             logger.info("Added chunks to ChromaDB for file: {}", files.id)

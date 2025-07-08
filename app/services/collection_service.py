@@ -1,6 +1,8 @@
+import chromadb.utils.embedding_functions as embedding_functions
 from asyncpg import NotNullViolationError
 from chromadb.errors import InvalidArgumentError
 
+from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.repositories import CollectionsRepository
 from app.schema.collection_schema import CreateCollectionRequest
@@ -12,6 +14,10 @@ class CollectionsService(BaseService):
     """
     Collection service class for handling collection-related operations.
     """
+    huggingface_ef = embedding_functions.HuggingFaceEmbeddingFunction(
+        api_key=settings.HUGGINGFACE_API_KEY,
+        model_name="sentence-transformers/all-mpnet-base-v2"
+    )
 
     def __init__(self, collections_repository: CollectionsRepository, chromadb_client: ChromaDBHttpClient,
                  embedding_model) -> None:
@@ -32,7 +38,6 @@ class CollectionsService(BaseService):
         try:
             # Create in repository first
             # Create ChromaDB collection
-            # print("Embedding model:", self.embedding_model.get_embedding_model())
             self.chromadb_client.create_collection(
                 collection_name=collection.collection_name,
                 metadata={
@@ -40,7 +45,7 @@ class CollectionsService(BaseService):
                     "description": collection.description,
                     "created_at": collection.created_at,
                 },
-                embedding_function=self.embedding_model,
+                embedding_function=self.huggingface_ef,
             )
 
             return collection
