@@ -5,7 +5,8 @@ import streamlit as st
 
 
 class Config:
-    BACKEND_URL = "https://api-chat.robbypambudi.com"
+    # BACKEND_URL = "https://api-chat.robbypambudi.com"
+    BACKEND_URL = "http://10.21.73.125:56565"
     PAGE_TITLE = "Informatics Chatbot"
     BACKGROUND_COLOR = "#F0F2F6"
     PRIMARY_COLOR = "#2C3E50"  # warna teks untuk user
@@ -66,7 +67,7 @@ class ChatBotApp:
             st.write("🔍 Silakan pilih koleksi yang ingin Anda gunakan untuk bertanya.")
 
             data = requests.get(
-                f"{Config.BACKEND_URL}/api/v1/collection?ordering=&page_size=10&page=1&collection_name=&id")
+                f"{Config.BACKEND_URL}/api/v1/collection?page=1&collection_name")
             if data.status_code == 200:
                 collections = data.json()
                 if collections['status'] == 'success':

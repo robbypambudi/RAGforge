@@ -93,7 +93,7 @@ class QuestionsService(BaseService):
         try:
             re_ranked_pairs = self._before_question(payload, using_augment_query=payload.using_augment_query)
 
-            async for chunk in self.openai_chat.chat_with_custom_api_stream(
+            async for chunk in self.openai_chat.chat_with_stream(
                     question=payload.question_text,
                     context_pairs=re_ranked_pairs
             ):

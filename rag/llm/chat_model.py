@@ -1,10 +1,9 @@
 from typing import List, Dict, Generator
 
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from loguru import logger
-
-# from openai import OpenAI
 
 prompt = """
 Kamu adalah chatbot interaktif bernama InformatikBot.
@@ -16,9 +15,6 @@ Pengguna akan memberikan pertanyaan, berdasarkan informasi yang diambil dari buk
 - Jawablah pertanyaan pengguna **sebisa mungkin berdasarkan informasi yang diberikan.** Jika diperlukan, kamu boleh menggunakan pengetahuan tambahan selama masih relevan dan dapat dipercaya.
 - Namun, jika informasi benar-benar tidak tersedia, barulah katakan: "Maaf, saya tidak memiliki informasi yang cukup untuk menjawab pertanyaan ini."
 
-"""
-
-use_html_prompt = """
 **Instruksi tambahan:**
 - Tulis jawaban dalam format HTML agar mudah ditampilkan di halaman web.
 - Gunakan tag HTML seperti `<ol>`, `<ul>`, `<li>` `<p>`, `<h3>`, `<h4>`, `<b`>, dan `<br>` untuk membuat penomoran dan poin yang rapi.
@@ -50,18 +46,15 @@ class OpenAIChat:
             key (str): OpenAI API key
             model_name (str): Nama model OpenAI yang akan digunakan
         """
-        # self.chat_model = ChatOpenAI(
-        #     api_key=key,
-        #     model=model_name,
-        #     temperature=0.7
-        # )
-        self.model_name = model_name
-        self.chat_model = ChatOpenAI(base_url='https://api.openai.com/v1', api_key=key, timeout=300, max_retries=3)
-
+        self.chat_model = ChatOpenAI(
+            api_key=key,
+            model=model_name,
+            temperature=0.7
+        )
         self.output_parser = StrOutputParser()
         logger.info(f"OpenAIChat initialized with model: {model_name}")
 
-    def _prepare_messages(self, question: str, context_pairs: list[list], is_html: bool = True) -> List:
+    def _prepare_messages(self, question: str, context_pairs: list[list]) -> List:
         """
         Menyiapkan pesan untuk chat.
 
@@ -73,22 +66,18 @@ class OpenAIChat:
             List: Daftar pesan yang telah disiapkan
         """
         messages = [
-            {"role": "system", "content": prompt.strip()},
+            SystemMessage(content=prompt.strip()),
         ]
 
         # Menambahkan konteks dari pairs
         context = ""
-        if is_html:
-            context += use_html_prompt + "\n\n"
         for pair in context_pairs:
             context += f"Q: {pair[0]}\nA: {pair[1]}\n\n"
         context = context.strip()
 
-        messages.append(
-            {"role": "user", "content": f"{context}\n\nQ: {question}\nA:"}
-        )
-
-        return messages
+        return messages + [
+            HumanMessage(content=f"{context}\n\nQ: {question}\nA:")
+        ]
 
     def chat(self, question: str, context_pairs: list[list]) -> str:
         """
@@ -102,7 +91,7 @@ class OpenAIChat:
             str: Jawaban dari model
         """
         try:
-            messages = self._prepare_messages(question, context_pairs, False)
+            messages = self._prepare_messages(question, context_pairs)
             response = self.chat_model.invoke(messages)
             answer = self.output_parser.parse(response.content)
             logger.info(f"Generated response for question: {question}")
@@ -128,29 +117,6 @@ class OpenAIChat:
                 if chunk.content:
                     processed_chunk = self.output_parser.parse(chunk.content)
                     yield processed_chunk
-        except Exception as e:
-            error_msg = f"Error in chat streaming: {str(e)}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-
-    async def chat_with_custom_api_stream(self, question: str, context_pairs: list[list]):
-        messages = self._prepare_messages(question, context_pairs)
-
-        try:
-            # Use OpenAI's Chat Completion with Streaming
-            response = self.chat_model.chat.completions.create(
-                model=self.model_name,
-                messages=messages,
-                stream=True
-            )
-
-            # Stream each chunk received from the API
-
-            for chunk in response:
-                if chunk.choices[0].delta.content is not None:
-                    processed_chunk = self.output_parser.parse(chunk.choices[0].delta.content)
-                    yield processed_chunk
-
         except Exception as e:
             error_msg = f"Error in chat streaming: {str(e)}"
             logger.error(error_msg)
