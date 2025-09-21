@@ -47,8 +47,9 @@ class OpenAIChat:
             model_name (str): Nama model OpenAI yang akan digunakan
         """
         self.chat_model = ChatOpenAI(
-            api_key=key,
-            model=model_name,
+            base_url='http://10.21.79.93:8000',
+            api_key='any',
+            model='qwen-0.5b',
             temperature=0.7
         )
         self.output_parser = StrOutputParser()

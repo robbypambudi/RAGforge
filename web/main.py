@@ -6,7 +6,7 @@ import streamlit as st
 
 class Config:
     # BACKEND_URL = "https://api-chat.robbypambudi.com"
-    BACKEND_URL = "http://10.21.73.125:56565"
+    BACKEND_URL = "http://10.21.73.125:8080"
     PAGE_TITLE = "Informatics Chatbot"
     BACKGROUND_COLOR = "#F0F2F6"
     PRIMARY_COLOR = "#2C3E50"  # warna teks untuk user

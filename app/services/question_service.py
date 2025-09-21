@@ -17,7 +17,7 @@ class QuestionsService(BaseService):
     Question service class for handling question-related operations.
     """
     re_ranking = ReRanking()
-    openai_chat = OpenAIChat(key=str(settings.OPENAI_API_KEY), model_name=str(settings.OPENAI_MODEL))
+    openai_chat = OpenAIChat(key=str('any'), model_name=str('qwen-0_5b'))
 
     def __init__(self, questions_repository: QuestionsRepository, collections_repository: CollectionsRepository,
                  chromadb_client: ChromaDBHttpClient, augment_query_generator: AugmentQueryGenerated) -> None:
