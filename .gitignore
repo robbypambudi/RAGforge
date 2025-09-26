@@ -11,6 +11,7 @@ env/
 Pipfile
 Pipfile.lock
 poetry.lock
+/chatbot
 
 # Log & Debug
 *.log

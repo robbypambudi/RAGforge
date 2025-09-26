@@ -16,7 +16,7 @@ class OpenAIClient:
         self.api_key = api_key
         # self.client = OpenAI(api_key=self.api_key)
         self.client = OpenAI(
-            base_url="http://10.21.79.94:8000/v1",
+            base_url="http://10.21.79.93:8000/v1",
             api_key="any"
         )
         logger.info("OpenAI client initialized with API key {}".format(self.api_key))
@@ -26,7 +26,7 @@ class AugmentQueryGenerated:
     def __init__(self, api_key):
         self.openai = OpenAIClient(api_key=api_key)
 
-    def augment(self, query, model="Qwen/Qwen2.5-0.5B-Instruct") -> list[str]:
+    def augment(self, query, model="qwen-14b") -> list[str]:
         """
         Augment the given query using OpenAI's API.
         """
