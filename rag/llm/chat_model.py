@@ -38,7 +38,7 @@ class OpenAIChat:
     Class untuk mengelola interaksi chat dengan OpenAI API.
     """
 
-    def __init__(self, key: str, model_name: str = "Qwen/Qwen2.5-0.5B-Instruct") -> None:
+    def __init__(self, key: str, model_name: str = "qwen-14b") -> None:
         """
         Inisialisasi OpenAIChat.
 
@@ -47,7 +47,7 @@ class OpenAIChat:
             model_name (str): Nama model OpenAI yang akan digunakan
         """
         self.chat_model = ChatOpenAI(
-            base_url='http://10.21.79.94:8000/v1',
+            base_url='http://10.21.79.93:8000/v1',
             api_key='any',
             model=model_name,
             temperature=0.7
