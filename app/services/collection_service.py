@@ -39,7 +39,7 @@ class CollectionsService(BaseService):
             # Create in repository first
             # Create ChromaDB collection
             self.chromadb_client.create_collection(
-                collection_name=collection.collection_name,
+                collection_name=collection.vectordb_collection_name,
                 metadata={
                     "id": collection.id,
                     "description": collection.description,
@@ -52,7 +52,7 @@ class CollectionsService(BaseService):
         except InvalidArgumentError as e:
             # If ChromaDB creation fails, delete from repository
             self.collections_repository.delete_by_id(collection.id)
-            raise ValidationError(detail=f"Collection name '{collection.collection_name}' is invalid. {str(e)}")
+            raise ValidationError(detail=f"Collection name '{collection.vectordb_collection_name}' is invalid. {str(e)}")
         except Exception as e:
             # If ChromaDB creation fails, delete from repository
             self.collections_repository.delete_by_id(collection.id)
@@ -63,9 +63,10 @@ class CollectionsService(BaseService):
         Get documents from a collection in ChromaDB.
         """
         try:
+            collection = self.collections_repository.get_by_name(collection_name)
             # Get documents from ChromaDB
             documents = self.chromadb_client.get_documents(
-                collection_name=collection_name,
+                collection_name=collection.vectordb_collection_name,
             )
             return documents
 
@@ -84,7 +85,7 @@ class CollectionsService(BaseService):
             self.collections_repository.delete_by_id(collection.id)
 
             # Delete from ChromaDB
-            self.chromadb_client.delete_collection(collection_name=collection_name)
+            self.chromadb_client.delete_collection(collection_name=collection.vectordb_collection_name)
 
         except InvalidArgumentError as e:
             raise ValidationError(detail=f"Collection name '{collection_name}' is invalid. {str(e)}")
