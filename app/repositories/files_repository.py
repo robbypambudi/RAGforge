@@ -26,3 +26,18 @@ class FilesRepository(BaseRepository, RepositoryProtocol):
                 return file_entry.collection.collection_name
             else:
                 raise ValueError(f"Collection with ID {collection_id} not found.")
+            
+    def get_vectordb_collection_name(self, collection_id: uuid.UUID) -> str:
+        """
+        Get the vector DB collection name using the collection ID.
+        """
+        with self.session_factory() as session:
+            file_entry = (
+                session.query(Files)
+                .filter(Files.collection_id == collection_id)
+                .join(Files.collection)
+                .first()
+            )
+            if file_entry and file_entry.collection:
+                return file_entry.collection.vectordb_collection_name
+            raise ValueError(f"Collection with ID {collection_id} not found.")
