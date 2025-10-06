@@ -67,7 +67,7 @@ class ChatBotApp:
             st.write("🔍 Choose the collection you want to query.")
 
             data = requests.get(
-                f"{Config.BACKEND_URL}/api/v1/collection?page=1&collection_name")
+                f"{Config.BACKEND_URL}/api/v1/collection?page=1&collection_name&vectordb_collection_name")
             if data.status_code == 200:
                 collections = data.json()
                 if collections['status'] == 'success':

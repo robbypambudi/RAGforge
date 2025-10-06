@@ -18,7 +18,7 @@ export function CollectionSelector({ appState, updateState }: CollectionSelector
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/v1/collection?page=1&collection_name=`)
+      const response = await fetch(`${BACKEND_URL}/api/v1/collection?page=1&collection_name&vectordb_collection_name`)
       const data = await response.json()
       
       console.log('API Response:', data) // Debug log

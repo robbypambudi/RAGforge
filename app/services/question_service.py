@@ -42,7 +42,7 @@ class QuestionsService(BaseService):
         else:
             quries = [payload.question_text]
 
-        results = self.chromadb_client.query(collection_name=collection.collection_name,
+        results = self.chromadb_client.query(collection_name=collection.vectordb_collection_name,
                                              query_texts=quries, include=["documents", "embeddings"])
         retrieved_documents = results["documents"]
 
