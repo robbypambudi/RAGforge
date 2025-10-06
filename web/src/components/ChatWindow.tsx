@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AppState } from '@/App'
 import { cn } from '@/lib/utils'
+import { HtmlRenderer } from './HtmlRenderer'
 
 interface ChatWindowProps {
   appState: AppState
@@ -32,7 +33,11 @@ export function ChatWindow({ appState }: ChatWindowProps) {
                 : 'bg-muted text-muted-foreground'
             )}
           >
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            {message.role === 'assistant' ? (
+              <HtmlRenderer content={message.content} />
+            ) : (
+              <div className="whitespace-pre-wrap">{message.content}</div>
+            )}
           </div>
         </div>
       ))}

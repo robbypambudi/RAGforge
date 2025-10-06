@@ -74,3 +74,5 @@ docs/_build/
 
 # Alembic
 alembic.ini
+
+node_modules

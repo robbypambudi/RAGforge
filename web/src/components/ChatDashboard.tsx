@@ -27,16 +27,16 @@ export function ChatDashboard({ onBack, appState, updateState }: ChatDashboardPr
           </Button>
           <div className="flex items-center space-x-3">
             <img 
-              src="/assets/nav-light.png" 
+              src="/assets/logo-light.png" 
               alt="RAGforge" 
               className="h-8 dark:hidden"
             />
             <img 
-              src="/assets/nav-dark.png" 
+              src="/assets/logo-dark.png" 
               alt="RAGforge" 
               className="h-8 hidden dark:block"
             />
-            <h1 className="text-xl font-semibold">RAGforge Chat</h1>
+            <h1 className="text-2xl font-semibold">D<span className="text-accent">i</span>LL<span className="text-accent">e</span>M<span className="text-accent">a</span> Chat</h1>
           </div>
         </div>
         <ThemeToggle theme={appState.theme} onToggle={toggleTheme} />

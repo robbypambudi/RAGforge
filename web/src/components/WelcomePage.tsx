@@ -24,21 +24,21 @@ export function WelcomePage({ onCreateChat, appState, updateState }: WelcomePage
           <div className="space-y-4">
             <div className="mx-auto">
               <img 
-                src="/assets/logo-light.png" 
+                src="/assets/logo-text-light.png" 
                 alt="RAGforge Logo" 
-                className="w-lg h-lg mx-auto dark:hidden"
+                className="w-2xl h-2xl mx-auto dark:hidden"
               />
               <img 
-                src="/assets/logo-dark.png" 
+                src="/assets/logo-text-dark.png" 
                 alt="RAGforge Logo" 
-                className="w-lg h-lg mx-auto hidden dark:block"
+                className="w-2xl h-2xl mx-auto hidden dark:block"
               />
             </div>
             <h1 className="text-3xl font-bold text-foreground">
               Welcome
             </h1>
             <p className="text-muted-foreground text-lg">
-              Your intelligent document chatbot powered by retrieval-augmented generation
+              Your intelligent document chatbot, powered by a <span className="text-foreground font-bold">D</span>istributed <span className="text-foreground font-bold">L</span>arge <span className="text-foreground font-bold">L</span>anguage <span className="text-foreground font-bold">M</span>odel with retrieval-augmented generation.
             </p>
           </div>
           

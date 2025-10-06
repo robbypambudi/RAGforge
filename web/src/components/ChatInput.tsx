@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AppState } from '@/App'
 
-const BACKEND_URL = 'http://localhost:8000'
+// const BACKEND_URL = 'http://localhost:8000'
+const BACKEND_URL = 'http://10.21.85.111:8000'
 
 interface ChatInputProps {
   appState: AppState

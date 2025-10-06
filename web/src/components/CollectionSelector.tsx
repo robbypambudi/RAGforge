@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { BookOpen } from 'lucide-react'
 import { AppState, Collection } from '@/App'
 
-const BACKEND_URL = 'http://localhost:8000'
+// const BACKEND_URL = 'http://localhost:8000'
+const BACKEND_URL = 'http://10.21.85.111:8000'
 
 interface CollectionSelectorProps {
   appState: AppState
