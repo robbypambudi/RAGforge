@@ -4,7 +4,7 @@
 
 - 🐍 **Python**
 - 🔗 **LangChain**
-- 🟣 **ChromaDB** (for vector storage)
+- 🔴 **Qdrant** (for vector storage)
 - 🐘 **PostgreSQL** (for metadata and structured data)
 
 This project provides a modular, extensible foundation for quickly prototyping or deploying RAG pipelines. Designed for developers, researchers, and teams building LLM-powered apps that require fast, context-aware information retrieval.
@@ -14,7 +14,7 @@ This project provides a modular, extensible foundation for quickly prototyping o
 ## 🚀 Features
 
 - ✅ Plug-and-play RAG pipeline with LangChain
-- 🔍 ChromaDB integration for fast vector search
+- 🔍 Qdrant integration for fast vector search
 - 🗃 PostgreSQL support for hybrid structured-unstructured queries
 - 🧱 Clean project structure & dependency injection
 - 🔧 Docker-ready setup for easy deployment
@@ -60,7 +60,7 @@ cd /web && npm install && npm run dev
 ## Access the Application
 * **API**: http://localhost:8000  
 * **API Docs**: http://localhost:8000/docs  
-* **ChromaDB**: http://localhost:8081  
+* **Qdrant**: http://localhost:6333  
 * **PostgreSQL**: http://localhost:5432  
 
 ## 📄 License

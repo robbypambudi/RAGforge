@@ -1,31 +1,25 @@
-import chromadb.utils.embedding_functions as embedding_functions
+from sentence_transformers import SentenceTransformer
 from asyncpg import NotNullViolationError
-from chromadb.errors import InvalidArgumentError
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.repositories import CollectionsRepository
 from app.schema.collection_schema import CreateCollectionRequest
 from app.services.base_service import BaseService
-from rag.chroma.client import ChromaDBHttpClient
+from rag.qdrant.client import QdrantHttpClient
 
 
 class CollectionsService(BaseService):
     """
     Collection service class for handling collection-related operations.
     """
-    huggingface_ef = embedding_functions.HuggingFaceEmbeddingFunction(
-        api_key=settings.HUGGINGFACE_API_KEY,
-        model_name="sentence-transformers/all-mpnet-base-v2"
-    )
+    embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
-    def __init__(self, collections_repository: CollectionsRepository, chromadb_client: ChromaDBHttpClient,
+    def __init__(self, collections_repository: CollectionsRepository, qdrant_client: QdrantHttpClient,
                  embedding_model) -> None:
         self.collections_repository = collections_repository
-
-        # Initialize the chromadb client service
         self.embedding_model = embedding_model
-        self.chromadb_client = chromadb_client
+        self.qdrant_client = qdrant_client
         super().__init__(collections_repository)
 
     def create(self, payload: CreateCollectionRequest) -> CreateCollectionRequest:
@@ -36,27 +30,13 @@ class CollectionsService(BaseService):
 
         collection = self.collections_repository.create(payload)
         try:
-            # Create in repository first
-            # Create ChromaDB collection
-            self.chromadb_client.create_collection(
-                collection_name=collection.vectordb_collection_name,
-                metadata={
-                    "id": collection.id,
-                    "description": collection.description,
-                    "created_at": collection.created_at,
-                },
-                embedding_function=self.huggingface_ef,
+            self.qdrant_client.create_collection(
+                collection_name=collection.vectordb_collection_name
             )
-
             return collection
-        except InvalidArgumentError as e:
-            # If ChromaDB creation fails, delete from repository
-            self.collections_repository.delete_by_id(collection.id)
-            raise ValidationError(detail=f"Collection name '{collection.vectordb_collection_name}' is invalid. {str(e)}")
         except Exception as e:
-            # If ChromaDB creation fails, delete from repository
             self.collections_repository.delete_by_id(collection.id)
-            raise e
+            raise ValidationError(detail=f"Collection creation failed: {str(e)}")
 
     def get_documents(self, collection_name: str) -> list:
         """
@@ -64,12 +44,10 @@ class CollectionsService(BaseService):
         """
         try:
             collection = self.collections_repository.get_by_name(collection_name)
-            # Get documents from ChromaDB
-            documents = self.chromadb_client.get_documents(
+            documents = self.qdrant_client.get_documents(
                 collection_name=collection.vectordb_collection_name,
             )
             return documents
-
         except Exception as e:
             raise e
 
@@ -79,18 +57,9 @@ class CollectionsService(BaseService):
         """
         try:
             collection = self.collections_repository.get_by_name(collection_name)
-
-            # Get the collection ID from the repository
-            # Delete from repository
             self.collections_repository.delete_by_id(collection.id)
-
-            # Delete from ChromaDB
-            self.chromadb_client.delete_collection(collection_name=collection.vectordb_collection_name)
-
-        except InvalidArgumentError as e:
-            raise ValidationError(detail=f"Collection name '{collection_name}' is invalid. {str(e)}")
+            self.qdrant_client.delete_collection(collection_name=collection.vectordb_collection_name)
         except NotNullViolationError as e:
             raise ValidationError(detail=f"Collection name '{collection_name}' is invalid. {str(e)}")
         except Exception as e:
-            # If ChromaDB deletion fails, delete from repository
             raise e

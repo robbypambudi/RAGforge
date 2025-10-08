@@ -18,7 +18,7 @@ dependencies = [
     "attrs==25.3.0",
     "certifi==2025.1.31",
     "charset-normalizer==3.4.1",
-    "chromadb>=1.1.0",
+    "qdrant-client>=1.7.0",
     "click==8.1.8",
     "colorama==0.4.6",
     "dataclasses-json==0.6.7",

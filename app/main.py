@@ -81,7 +81,7 @@ class App:
         """
         logger.info("Starting up the application...")
         self.db = self.container.db()
-        self.chroma = self.container.chromadb_client()
+        self.qdrant = self.container.qdrant_client()
         self.model = self.container.embedding_model()
         yield
         # Shutdown

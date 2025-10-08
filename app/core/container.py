@@ -10,7 +10,7 @@ from app.repositories.questions_repository import QuestionsRepository
 from app.services.collection_service import CollectionsService
 from app.services.files_service import FilesService
 from app.services.question_service import QuestionsService
-from rag.chroma.client import ChromaDBHttpClient
+from rag.qdrant.client import QdrantHttpClient
 from rag.embedding.embedding_factory import EmbeddingFactory
 
 
@@ -30,7 +30,7 @@ class Container(containers.DeclarativeContainer):
         lambda factory: factory.get("Default"),
         embedding_factory,
     )
-    chromadb_client = providers.Singleton(ChromaDBHttpClient, host='localhost', port=8081)
+    qdrant_client = providers.Singleton(QdrantHttpClient, host='localhost', port=6333)
     db = providers.Singleton(Database, db_url=str(settings.SQLALCHEMY_DATABASE_URI))
     augment_query_generator = providers.Singleton(AugmentQueryGenerated, api_key=str(settings.OPENAI_API_KEY))
 
@@ -41,11 +41,11 @@ class Container(containers.DeclarativeContainer):
 
     # Service layer
     pipeline_service = providers.Factory(PipelineService, files_repository=files_repository,
-                                         chromadb_client=chromadb_client)
+                                         qdrant_client=qdrant_client)
     collection_service = providers.Factory(CollectionsService, collections_repository=collections_repository,
-                                           chromadb_client=chromadb_client, embedding_model=embedding_model)
+                                           qdrant_client=qdrant_client, embedding_model=embedding_model)
     files_service = providers.Factory(FilesService, files_repository=files_repository)
     question_service = providers.Factory(QuestionsService, questions_repository=questions_repository,
                                          collections_repository=collections_repository,
-                                         chromadb_client=chromadb_client,
+                                         qdrant_client=qdrant_client,
                                          augment_query_generator=augment_query_generator)
