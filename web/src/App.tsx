@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { WelcomePage } from '@/components/WelcomePage'
 import { ChatDashboard } from '@/components/ChatDashboard'
+import { CollectionManager } from '@/components/CollectionManager'
 
 export interface Collection {
   id: string
@@ -22,7 +23,7 @@ export interface AppState {
 }
 
 function App() {
-  const [currentView, setCurrentView] = useState<'welcome' | 'chat'>('welcome')
+  const [currentView, setCurrentView] = useState<'welcome' | 'chat' | 'collections'>('welcome')
   const [appState, setAppState] = useState<AppState>({
     theme: 'light',
     collections: [],
@@ -55,11 +56,24 @@ function App() {
           appState={appState}
           updateState={updateState}
         />
+      ) : currentView === 'collections' ? (
+        <div className="min-h-screen bg-background">
+          <div className="p-4 border-b">
+            <button 
+              onClick={() => setCurrentView('chat')}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
+          <CollectionManager />
+        </div>
       ) : (
         <ChatDashboard 
           onBack={() => setCurrentView('welcome')}
           appState={appState}
           updateState={updateState}
+          onManageCollections={() => setCurrentView('collections')}
         />
       )}
     </>

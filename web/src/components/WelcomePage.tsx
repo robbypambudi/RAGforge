@@ -42,13 +42,15 @@ export function WelcomePage({ onCreateChat, appState, updateState }: WelcomePage
             </p>
           </div>
           
-          <Button 
-            onClick={onCreateChat}
-            size="lg"
-            className="w-full max-w-xs"
-          >
-            Create New Chat
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={onCreateChat}
+              size="lg"
+              className="w-full max-w-xs"
+            >
+              Create New Chat
+            </Button>
+          </div>
           
           <p className="text-sm text-muted-foreground">
             Built to support the Informatics degree at <a className="underline" href="https://www.its.ac.id">Institut Teknologi Sepuluh Nopember Surabaya</a>

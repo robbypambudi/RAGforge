@@ -1,17 +1,22 @@
-import { useEffect } from 'react'
-import { BookOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BookOpen, Plus, MoreVertical, Settings } from 'lucide-react'
 import { AppState, Collection } from '@/App'
+import { AddCollectionModal } from './AddCollectionModal'
+import { ManageCollectionModal } from './ManageCollectionModal'
 
-// const BACKEND_URL = 'http://localhost:8000'
-const BACKEND_URL = 'http://10.21.85.111:8000'
+import { BACKEND_URL } from '@/config'
 
 interface CollectionSelectorProps {
   appState: AppState
   updateState: (updates: Partial<AppState>) => void
+  onManageCollections: () => void
 }
 
-export function CollectionSelector({ appState, updateState }: CollectionSelectorProps) {
+export function CollectionSelector({ appState, updateState, onManageCollections }: CollectionSelectorProps) {
   const { collections, selectedCollection } = appState
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showManageModal, setShowManageModal] = useState(false)
+  const [managingCollection, setManagingCollection] = useState<Collection | null>(null)
 
   useEffect(() => {
     fetchCollections()
@@ -48,35 +53,53 @@ export function CollectionSelector({ appState, updateState }: CollectionSelector
     })
   }
 
+  const handleManageCollection = (collection: Collection, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setManagingCollection(collection)
+    setShowManageModal(true)
+  }
+
   return (
     <div className="w-80 border-r bg-muted/30 p-4">
       <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <BookOpen className="w-5 h-5" />
-          <h2 className="font-semibold">Collections</h2>
-        </div>
-        
-        {selectedCollection && (
-          <div className="p-3 bg-primary/10 rounded-lg border">
-            <h3 className="font-medium text-sm text-primary">{selectedCollection.name}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{selectedCollection.description}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5" />
+            <h2 className="font-semibold">Collections</h2>
           </div>
-        )}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="p-1 hover:bg-accent rounded-md transition-colors"
+            title="Add Collection"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
         
         <div className="space-y-2">
           {collections.map((collection) => (
-            <button
+            <div
               key={collection.id}
-              onClick={() => handleCollectionChange(collection)}
-              className={`w-full text-left p-3 rounded-lg border transition-colors ${
+              className={`relative group rounded-lg border transition-colors ${
                 selectedCollection?.id === collection.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-accent'
+                  ? 'bg-primary/20 border-primary/50 text-foreground'
+                  : 'bg-background hover:bg-accent/50 border-border hover:border-accent-foreground/20'
               }`}
             >
-              <div className="font-medium text-sm">{collection.name}</div>
-              <div className="text-xs opacity-70 mt-1">{collection.description}</div>
-            </button>
+              <button
+                onClick={() => handleCollectionChange(collection)}
+                className="w-full text-left p-3 pr-10"
+              >
+                <div className="font-medium text-sm">{collection.name}</div>
+                <div className="text-xs opacity-70 mt-1">{collection.description}</div>
+              </button>
+              <button
+                onClick={(e) => handleManageCollection(collection, e)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 opacity-0 group-hover:opacity-100 hover:bg-accent rounded transition-all"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
           ))}
         </div>
         
@@ -85,7 +108,30 @@ export function CollectionSelector({ appState, updateState }: CollectionSelector
             No collections available
           </div>
         )}
+
+        <div className="pt-4 border-t">
+          <button
+            onClick={onManageCollections}
+            className="w-full flex items-center space-x-2 p-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            <span>Manage Collections</span>
+          </button>
+        </div>
       </div>
+
+      <AddCollectionModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={fetchCollections}
+      />
+
+      <ManageCollectionModal
+        isOpen={showManageModal}
+        onClose={() => setShowManageModal(false)}
+        collection={managingCollection}
+        onSuccess={fetchCollections}
+      />
     </div>
   )
 }

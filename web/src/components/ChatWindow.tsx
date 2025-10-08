@@ -8,12 +8,25 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ appState }: ChatWindowProps) {
-  const { messages, isLoading } = appState
+  const { messages, isLoading, selectedCollection } = appState
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  if (!selectedCollection) {
+    return (
+      <div className="flex-1 relative">
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center p-8 bg-background rounded-lg border shadow-lg">
+            <h2 className="text-2xl font-semibold mb-2">Welcome!</h2>
+            <p className="text-muted-foreground">Please select a collection to begin</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
