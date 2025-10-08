@@ -25,6 +25,15 @@ def index(
     return service.get_list(query)
 
 
+def run_pipeline_with_error_handling(pipeline_service, files):
+    """Wrapper to handle pipeline errors in background tasks"""
+    try:
+        pipeline_service.run_pipeline(files)
+    except Exception as e:
+        from loguru import logger
+        logger.error(f"Background pipeline failed for file {files.id}: {e}")
+        logger.exception("Full traceback:")
+
 # Create a new file
 @router.post("", tags=["post"], response_model=BaseResponse[ResponseFiles])
 @inject
@@ -39,10 +48,11 @@ def create(
     """
     response = service.create(payload)
 
-    # Add the file to the pipeline
+    # Add the file to the pipeline with error handling
     background_tasks.add_task(
-        pipeline_service.run_pipeline,
-        files=response
+        run_pipeline_with_error_handling,
+        pipeline_service,
+        response
     )
 
     return BaseResponse(
