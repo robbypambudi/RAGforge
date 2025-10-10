@@ -12,8 +12,6 @@ interface Collection {
 
 import { BACKEND_URL } from '@/config'
 
-const API_BASE = `${BACKEND_URL}/api/v1`
-
 export function CollectionManager() {
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +29,7 @@ export function CollectionManager() {
   const fetchCollections = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_BASE}/collection?page=1&collection_name&vectordb_collection_name`)
+      const response = await fetch(`${BACKEND_URL}/api/v1/collection?page=1&collection_name&vectordb_collection_name`)
       const data = await response.json()
       if (data.status === 'success') {
         setCollections(data.data)
@@ -50,7 +48,7 @@ export function CollectionManager() {
       formDataObj.append('vectordb_collection_name', formData.vectordb_collection_name)
       formDataObj.append('description', formData.description)
 
-      const response = await fetch(`${API_BASE}/collection`, {
+      const response = await fetch(`${BACKEND_URL}/api/v1/collection`, {
         method: 'POST',
         body: formDataObj
       })
@@ -67,7 +65,7 @@ export function CollectionManager() {
 
   const deleteCollection = async (collectionName: string) => {
     try {
-      const response = await fetch(`${API_BASE}/collection/${collectionName}`, {
+      const response = await fetch(`${BACKEND_URL}/api/v1/collection/${collectionName}`, {
         method: 'DELETE'
       })
 

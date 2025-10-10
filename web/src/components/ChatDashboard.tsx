@@ -13,7 +13,8 @@ interface ChatDashboardProps {
   onManageCollections: () => void
 }
 
-export function ChatDashboard({ onBack, appState, updateState, onManageCollections }: ChatDashboardProps) {
+export function ChatDashboard({ onBack, appState, updateState }: ChatDashboardProps) {
+// export function ChatDashboard({ onBack, appState, updateState, onManageCollections }: ChatDashboardProps) {
   const toggleTheme = () => {
     updateState({ theme: appState.theme === 'light' ? 'dark' : 'light' })
   }
@@ -44,7 +45,8 @@ export function ChatDashboard({ onBack, appState, updateState, onManageCollectio
       </header>
       
       <div className="flex-1 flex overflow-hidden">
-        <CollectionSelector appState={appState} updateState={updateState} onManageCollections={onManageCollections} />
+        {/* <CollectionSelector appState={appState} updateState={updateState} onManageCollections={onManageCollections} /> */}
+        <CollectionSelector appState={appState} updateState={updateState} />
         
         <div className="flex-1 flex flex-col">
           <ChatWindow appState={appState} />
