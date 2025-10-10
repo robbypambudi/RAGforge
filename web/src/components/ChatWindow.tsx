@@ -4,21 +4,6 @@ import { cn } from '@/lib/utils'
 import { HtmlRenderer } from './HtmlRenderer'
 import { Button } from './ui/Button'
 
-const cleanBrokenHtml = (htmlString: string) => {
-  if (!htmlString || typeof htmlString !== 'string') return ''
-  
-  return htmlString
-    .replace(/[\r\n]+/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s*<\s*/g, '<')
-    .replace(/\s*>\s*/g, '>')
-    .trim()
-}
 import { Copy, FileDown } from 'lucide-react'
 
 interface ChatWindowProps {
