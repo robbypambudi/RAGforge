@@ -2,6 +2,24 @@ import { useEffect, useRef } from 'react'
 import { AppState } from '@/App'
 import { cn } from '@/lib/utils'
 import { HtmlRenderer } from './HtmlRenderer'
+import { Button } from './ui/Button'
+
+const cleanBrokenHtml = (htmlString: string) => {
+  if (!htmlString || typeof htmlString !== 'string') return ''
+  
+  return htmlString
+    .replace(/[\r\n]+/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s*<\s*/g, '<')
+    .replace(/\s*>\s*/g, '>')
+    .trim()
+}
+import { Copy, FileDown } from 'lucide-react'
 
 interface ChatWindowProps {
   appState: AppState
@@ -10,6 +28,68 @@ interface ChatWindowProps {
 export function ChatWindow({ appState }: ChatWindowProps) {
   const { messages, isLoading, selectedCollection } = appState
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content)
+  }
+
+  const cleanBrokenHtml = (htmlString: string) => {
+    if (!htmlString || typeof htmlString !== 'string') {
+      return ''
+    }
+    
+    let cleanedText = htmlString
+      .replace(/[\r\n]+/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s*<\s*/g, '<')
+      .replace(/\s*>\s*/g, '>')
+
+    return cleanedText.trim()
+  }
+
+  const downloadChatHtml = () => {
+    const chatHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Export</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .message { margin: 15px 0; display: flex; }
+    .user { justify-content: flex-end; }
+    .assistant { justify-content: flex-start; }
+    .bubble { display: inline-block; padding: 15px; border-radius: 8px; max-width: 70%; }
+    .user .bubble { background: #e3f2fd; }
+    .assistant .bubble { background: #f5f5f5; }
+    .role { font-weight: bold; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Chat Export - ${new Date().toLocaleDateString()}</h1>
+${messages.map(msg => `
+  <div class="message ${msg.role}">
+    <div class="bubble">
+      <div class="role">${msg.role === 'user' ? 'You' : 'Assistant'}:</div>
+      <div>${msg.role === 'assistant' ? cleanBrokenHtml(msg.content) : msg.content.replace(/\n/g, '<br>')}</div>
+    </div>
+  </div>
+`).join('')}
+</body>
+</html>`
+    
+    const blob = new Blob([chatHtml], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `chat-${new Date().toISOString().split('T')[0]}.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -34,13 +114,13 @@ export function ChatWindow({ appState }: ChatWindowProps) {
         <div
           key={index}
           className={cn(
-            "flex",
-            message.role === 'user' ? 'justify-end' : 'justify-start'
+            "flex flex-col group",
+            message.role === 'user' ? 'items-end' : 'items-start'
           )}
         >
           <div
             className={cn(
-              "max-w-[80%] rounded-lg px-4 py-2",
+              "inline-block rounded-lg px-4 py-2",
               message.role === 'user'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground'
@@ -52,6 +132,27 @@ export function ChatWindow({ appState }: ChatWindowProps) {
               <div className="whitespace-pre-wrap">{message.content}</div>
             )}
           </div>
+          
+          {message.role === 'assistant' && (
+            <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(message.content)}
+                className="h-6 px-2 text-xs"
+              >
+                <Copy size={16} strokeWidth={2} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={downloadChatHtml}
+                className="h-6 px-2 text-xs"
+              >
+                <FileDown size={16} strokeWidth={2} />
+              </Button>
+            </div>
+          )}
         </div>
       ))}
       
