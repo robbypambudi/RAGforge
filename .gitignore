@@ -76,3 +76,5 @@ docs/_build/
 alembic.ini
 
 node_modules
+
+qdrant_storage

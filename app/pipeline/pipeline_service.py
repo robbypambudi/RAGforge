@@ -1,43 +1,48 @@
 from datetime import datetime
 
-import chromadb.utils.embedding_functions as embedding_functions
+from sentence_transformers import SentenceTransformer
 from loguru import logger
 from pypdf import PdfReader
 
 from app.core.config import settings
 from app.models.files import Files
 from app.repositories.files_repository import FilesRepository
-from rag.chroma.client import ChromaDBHttpClient
+from rag.qdrant.client import QdrantHttpClient
 from rag.nlp.doc_chunking import DocumentChunker
 from rag.nlp.doc_cleaner import DocumentCleaner
 
 
-def read_pdf(file_path: str):
+def read_file(file_path: str, file_type: str):
     """
-    Read a PDF file and return its content.
+    Read a file and return its content based on file type.
     """
     try:
-        reader = PdfReader(file_path)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
+        if file_type == "application/pdf":
+            reader = PdfReader(file_path)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+            return text
+        elif file_type.startswith("text/"):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        else:
+            # Try to read as text for other file types
+            with open(file_path, "r", encoding="utf-8") as f:
+                return f.read()
     except Exception as e:
-        logger.error("Error reading PDF file: {}", e)
+        logger.error("Error reading file {}: {}", file_path, e)
         raise
 
 
 class PipelineService:
     doc_cleaner = DocumentCleaner()
     doc_chunker = DocumentChunker()
-    huggingface_ef = embedding_functions.HuggingFaceEmbeddingFunction(
-        api_key=settings.HUGGINGFACE_API_KEY,
-        model_name="sentence-transformers/all-mpnet-base-v2"
-    )
+    embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
-    def __init__(self, files_repository: FilesRepository, chromadb_client: ChromaDBHttpClient):
+    def __init__(self, files_repository: FilesRepository, qdrant_client: QdrantHttpClient):
         self.file_repository = files_repository
-        self.chromadb_client = chromadb_client
+        self.qdrant_client = qdrant_client
 
     def run_pipeline(self, files: Files):
         """
@@ -55,9 +60,8 @@ class PipelineService:
             )
             logger.info("Updated file status to processing for file: {}", files.id)
 
-            # Simulate pipeline processing
-            # clean_text = self.doc_cleaner.clean_document(read_pdf(files.file_path))
-            clean_text = read_pdf(files.file_path)
+            # Read file content based on file type
+            clean_text = read_file(files.file_path, files.file_type)
             logger.info("Cleaned text for file: {}", files.id)
             chunks = self.doc_chunker.chunk_text(clean_text)
             logger.info("Chunked text for file: {}", files.id)
@@ -77,16 +81,15 @@ class PipelineService:
                     "file_name": files.file_name,
                 } for text in chunks
             ]
-            logger.info("Preparing to add chunks to ChromaDB for file: {}", files.id)
-            self.chromadb_client.add_documents(
+            logger.info("Preparing to add chunks to Qdrant for file: {}", files.id)
+            self.qdrant_client.add_documents(
                 ids=ids,
                 documents=chunks,
                 metadatas=metadata,
                 collection_name=vectordb_collection_name,
-                # embedding_function=self.huggingface_ef
+                embedding_function=self.embedding_model.encode
             )
-
-            logger.info("Added chunks to ChromaDB for file: {}", files.id)
+            logger.info("Added chunks to Qdrant for file: {}", files.id)
             # Update the file status to completed
             self.file_repository.update(
                 id=files.id,
@@ -103,7 +106,8 @@ class PipelineService:
             )
 
         except Exception as e:
-            logger.error("Error processing file: {}", e)
+            logger.error("Error processing file {}: {}", files.id, str(e))
+            logger.exception("Full traceback:")
             # Update the file status to error
             self.file_repository.update(
                 id=files.id,

@@ -1,3 +1,4 @@
+from sentence_transformers import SentenceTransformer
 from loguru import logger
 
 from agents.augment_query_generated import AugmentQueryGenerated
@@ -7,7 +8,7 @@ from app.repositories import CollectionsRepository
 from app.repositories.questions_repository import QuestionsRepository
 from app.schema.question_schema import CreateQuestion
 from app.services.base_service import BaseService
-from rag.chroma.client import ChromaDBHttpClient
+from rag.qdrant.client import QdrantHttpClient
 from rag.llm.chat_model import OpenAIChat
 from rag.llm.re_rank import ReRanking
 
@@ -18,14 +19,14 @@ class QuestionsService(BaseService):
     """
     re_ranking = ReRanking()
     openai_chat = OpenAIChat(key=str('any'), model_name=str('qwen-14b'))
+    embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
     def __init__(self, questions_repository: QuestionsRepository, collections_repository: CollectionsRepository,
-                 chromadb_client: ChromaDBHttpClient, augment_query_generator: AugmentQueryGenerated) -> None:
+                 qdrant_client: QdrantHttpClient, augment_query_generator: AugmentQueryGenerated) -> None:
         self.question_repository = questions_repository
         self.collections_repository = collections_repository
-        self.chromadb_client = chromadb_client
+        self.qdrant_client = qdrant_client
         self.augment_query_generator = augment_query_generator
-
         super().__init__(questions_repository)
 
     def _before_question(self, payload: CreateQuestion, using_augment_query=False):
@@ -42,8 +43,21 @@ class QuestionsService(BaseService):
         else:
             quries = [payload.question_text]
 
-        results = self.chromadb_client.query(collection_name=collection.vectordb_collection_name,
-                                             query_texts=quries, include=["documents", "embeddings"])
+        # Generate embeddings for queries
+        query_embeddings = [self.embedding_model.encode(query) for query in quries]
+        
+        # Search in Qdrant
+        all_results = []
+        for query_embedding in query_embeddings:
+            search_result = self.qdrant_client.client.search(
+                collection_name=collection.vectordb_collection_name,
+                query_vector=query_embedding,
+                limit=10
+            )
+            docs = [hit.payload.get("document", "") for hit in search_result]
+            all_results.append(docs)
+        
+        results = {"documents": all_results}
         retrieved_documents = results["documents"]
 
         # Check is retrieved_documents is empty
