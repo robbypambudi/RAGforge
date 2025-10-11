@@ -35,6 +35,33 @@ This project provides a modular, extensible foundation for quickly prototyping o
 
 ```
 
+## Quick Start
+
+```sh
+# Copy environment file
+cp .env.example .env
+
+# Install dependencies
+uv sync
+
+# Start Services
+docker-compose up -d
+
+# Run Migrations
+alembic upgrade head
+
+# Run The Application
+uvicorn app.main:app
+
+# Run The Frontend
+cd /web && npm install && npm run dev
+```
+
+## Access the Application
+* **API**: http://localhost:8000  
+* **API Docs**: http://localhost:8000/docs  
+* **ChromaDB**: http://localhost:8081  
+* **PostgreSQL**: http://localhost:5432  
 
 ## 📄 License
 

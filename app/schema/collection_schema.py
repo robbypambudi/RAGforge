@@ -9,6 +9,7 @@ from app.utils.schema import as_form
 
 class BaseCollection(BaseModel):
     collection_name: str
+    vectordb_collection_name: str
     description: Optional[str] = None
 
     class Config:

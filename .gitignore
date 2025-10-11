@@ -11,6 +11,7 @@ env/
 Pipfile
 Pipfile.lock
 poetry.lock
+/chatbot
 
 # Log & Debug
 *.log
@@ -36,6 +37,7 @@ build/
 dist/
 *.egg-info/
 *.egg
+/web/node_modules
 
 # Packaging
 .DS_Store
@@ -72,3 +74,5 @@ docs/_build/
 
 # Alembic
 alembic.ini
+
+node_modules

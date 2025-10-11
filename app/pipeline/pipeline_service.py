@@ -64,6 +64,7 @@ class PipelineService:
 
             # Query the collection name from the database
             collection_name = self.file_repository.get_collection_name(files.collection_id)
+            vectordb_collection_name = self.file_repository.get_vectordb_collection_name(files.collection_id)
 
             logger.info("Collection name for file {}: {}", files.id, collection_name)
             if not collection_name:
@@ -81,7 +82,7 @@ class PipelineService:
                 ids=ids,
                 documents=chunks,
                 metadatas=metadata,
-                collection_name=collection_name,
+                collection_name=vectordb_collection_name,
                 # embedding_function=self.huggingface_ef
             )
 

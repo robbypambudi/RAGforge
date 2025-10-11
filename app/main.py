@@ -30,7 +30,7 @@ class App:
         if settings.BACKEND_CORS_ORIGINS:
             self.app.add_middleware(
                 CORSMiddleware,
-                allow_origins=settings.BACKEND_CORS_ORIGINS,
+                allow_origins=["http://localhost:8501", "http://localhost:3000", "http://10.21.85.111:3000"],
                 allow_credentials=True,
                 allow_methods=["*"],
                 allow_headers=["*"],

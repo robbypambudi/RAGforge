@@ -17,7 +17,7 @@ class QuestionsService(BaseService):
     Question service class for handling question-related operations.
     """
     re_ranking = ReRanking()
-    openai_chat = OpenAIChat(key=str('any'), model_name=str('qwen-0_5b'))
+    openai_chat = OpenAIChat(key=str('any'), model_name=str('qwen-14b'))
 
     def __init__(self, questions_repository: QuestionsRepository, collections_repository: CollectionsRepository,
                  chromadb_client: ChromaDBHttpClient, augment_query_generator: AugmentQueryGenerated) -> None:
@@ -42,7 +42,7 @@ class QuestionsService(BaseService):
         else:
             quries = [payload.question_text]
 
-        results = self.chromadb_client.query(collection_name=collection.collection_name,
+        results = self.chromadb_client.query(collection_name=collection.vectordb_collection_name,
                                              query_texts=quries, include=["documents", "embeddings"])
         retrieved_documents = results["documents"]
 

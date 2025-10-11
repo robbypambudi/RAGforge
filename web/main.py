@@ -6,11 +6,11 @@ import streamlit as st
 
 class Config:
     # BACKEND_URL = "https://api-chat.robbypambudi.com"
-    BACKEND_URL = "http://10.21.73.125:8080"
+    BACKEND_URL = "http://localhost:8000"
     PAGE_TITLE = "Informatics Chatbot"
     BACKGROUND_COLOR = "#F0F2F6"
-    PRIMARY_COLOR = "#2C3E50"  # warna teks untuk user
-    ASSISTANT_COLOR = "#34495E"  # warna teks untuk assistant
+    PRIMARY_COLOR = "#2C3E50"  # text color for user messages
+    ASSISTANT_COLOR = "#34495E"  # text color for assistant messages
 
 
 class ChatMessage:
@@ -47,7 +47,7 @@ class ChatBotApp:
         if self.user_id not in st.session_state["chat_histories"]:
             default_msg = ChatMessage(
                 role="assistant",
-                content="👋 Selamat datang di chatbot kami! Silakan pilih koleksi untuk memulai."
+                content="👋 Welcome to our chatbot! Please select a collection to begin."
             )
             st.session_state["chat_histories"][self.user_id] = [
                 default_msg.to_dict()
@@ -58,16 +58,16 @@ class ChatBotApp:
 
     def _render_sidebar(self):
         with st.sidebar:
-            st.title("💬 Selamat Datang!")
+            st.title("💬 Welcome!")
             st.write(
-                "Sebuah chatbot yang dirancang untuk membantu Anda menjawab pertanyaan dengan cepat dan akurat.")
+                "A chatbot designed to help you answer questions quickly and accurately.")
             # Author
 
             st.markdown("---")
-            st.write("🔍 Silakan pilih koleksi yang ingin Anda gunakan untuk bertanya.")
+            st.write("🔍 Choose the collection you want to query.")
 
             data = requests.get(
-                f"{Config.BACKEND_URL}/api/v1/collection?page=1&collection_name")
+                f"{Config.BACKEND_URL}/api/v1/collection?page=1&collection_name&vectordb_collection_name")
             if data.status_code == 200:
                 collections = data.json()
                 if collections['status'] == 'success':
@@ -81,7 +81,7 @@ class ChatBotApp:
                     ]
 
                     selected_collection = st.selectbox(
-                        "📚 Pilih Koleksi",
+                        "📚 Choose a Collection",
                         options=[collection['name'] for collection in collection_names],
                         format_func=lambda x: x
                     )
@@ -93,12 +93,12 @@ class ChatBotApp:
                                 self.collection_id = collection['id']
                                 break
             else:
-                st.error("❌ Gagal mengambil data koleksi.")
+                st.error("❌ Failed to fetch collections.")
 
             st.markdown("---")
             st.write(
-                "Dibuat untuk mendapatkan gelar teknik informatika di [Institut Teknologi Sepuluh Nopember Surabaya](https://www.its.ac.id/)")
-            st.write("👨‍🎓 Robby Pambudi - TC21")
+                "Built to support the Informatics degree at [Institut Teknologi Sepuluh Nopember Surabaya](https://www.its.ac.id/)")
+            # st.write("👨‍🎓 Robby Pambudi - TC21")
             # Github
 
     def _append_message(self, role: str, content: str):
@@ -112,11 +112,11 @@ class ChatBotApp:
             st.markdown(content, unsafe_allow_html=True)
 
     def _handle_input(self):
-        user_input = st.chat_input("💭 Tanyakan sesuatu...")
+        user_input = st.chat_input("💭 Ask something...")
         if not user_input:
             return
         if not self.collection_name:
-            st.error("⚠️ Mohon pilih koleksi terlebih dahulu.")
+            st.error("⚠️ Please select a collection first.")
             return
         self._append_message("user", user_input)
         self.display_messages("user", user_input)
@@ -133,8 +133,8 @@ class ChatBotApp:
         with st.chat_message("assistant"):
             placeholder = st.empty()
 
-            # Tampilkan efek 'Assistant sedang mengetik...'
-            typing_text = "🟡 Asisten sedang mengetik"
+            # Show an "assistant is typing" animation
+            typing_text = "🟡 The assistant is typing"
             for i in range(3):
                 placeholder.markdown(typing_text + "." * (i + 1))
                 time.sleep(0.3)
@@ -163,11 +163,11 @@ class ChatBotApp:
                         )
 
                 if not full_response:
-                    full_response = "⚠️ Tidak ada jawaban dari server."
+                    full_response = "⚠️ No response received from the server."
                     placeholder.markdown(full_response, unsafe_allow_html=True)
 
             except Exception as e:
-                st.error(f"❌ Gagal menghubungi server: {e}")
+                st.error(f"❌ Could not reach the server: {e}")
                 print(f"Error: {e}")
                 return
 
@@ -185,7 +185,7 @@ class ChatBotApp:
                     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                     margin-bottom: 10px;
                 ">
-                    <h3 style="margin-bottom: 5px;">📂 Koleksi Aktif: <span style="color: #F9E79F;">{self.collection_name}</span></h3>
+                    <h3 style="margin-bottom: 5px;">📂 Active Collection: <span style="color: #F9E79F;">{self.collection_name}</span></h3>
                     <p style="margin: 0; font-size: 15px;">{self.collection_description}</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -199,7 +199,7 @@ class ChatBotApp:
                         color: #C0392B;
                         font-weight: 500;
                     ">
-                        ⚠️ <strong>Belum ada koleksi yang dipilih.</strong> Silakan pilih koleksi terlebih dahulu untuk memulai chat.
+                        ⚠️ <strong>No collection selected yet.</strong> Please choose a collection to start chatting.
                     </div>
                 """, unsafe_allow_html=True)
 
