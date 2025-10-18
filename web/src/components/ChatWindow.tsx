@@ -15,7 +15,16 @@ export function ChatWindow({ appState }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const copyToClipboard = (content: string) => {
-    navigator.clipboard.writeText(content)
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(content)
+    } else {
+      const textArea = document.createElement('textarea')
+      textArea.value = content
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+    }
   }
 
   const cleanBrokenHtml = (htmlString: string) => {

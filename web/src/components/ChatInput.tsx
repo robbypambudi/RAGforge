@@ -79,14 +79,15 @@ export function ChatInput({ appState, updateState }: ChatInputProps) {
           onChange={(e) => setInput(e.target.value)}
           placeholder={selectedCollection ? "💭 Ask something..." : "Please select a collection first"}
           disabled={!selectedCollection || isLoading}
-          className="flex-1"
+          className="flex-1 shadow-md"
         />
         <Button 
           type="submit" 
           disabled={!input.trim() || !selectedCollection || isLoading}
-          size="sm"
+          size="default"
+          className="shadow-md"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-5 h-5" />
         </Button>
       </form>
     </div>

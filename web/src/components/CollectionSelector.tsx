@@ -49,7 +49,7 @@ export function CollectionSelector({ appState, updateState }: CollectionSelector
       selectedCollection: collection,
       messages: [{
         role: 'assistant',
-        content: '👋 Welcome to our chatbot! Please select a collection to begin.'
+        content: '👋 Welcome to our chatbot! Feel free to ask about anything.'
       }]
     })
   }

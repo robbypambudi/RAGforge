@@ -30,7 +30,7 @@ function App() {
     selectedCollection: null,
     messages: [{
       role: 'assistant',
-      content: '👋 Welcome to our chatbot! Please select a collection to begin.'
+      content: '👋 Welcome to our chatbot! Feel free to ask about anything.'
     }],
     isLoading: false
   })
