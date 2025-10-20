@@ -16,10 +16,10 @@ export function ChatWindow({ appState }: ChatWindowProps) {
 
   const copyToClipboard = (content: string) => {
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(content)
+      navigator.clipboard.writeText(cleanBrokenHtml(content))
     } else {
       const textArea = document.createElement('textarea')
-      textArea.value = content
+      textArea.value = cleanBrokenHtml(content)
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
@@ -34,16 +34,10 @@ export function ChatWindow({ appState }: ChatWindowProps) {
     
     let cleanedText = htmlString
       .replace(/[\r\n]+/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/\s*<\s*/g, '<')
-      .replace(/\s*>\s*/g, '>')
+      .replace(/```html/g, '')
+      .replace(/```/g, '')
 
-    return cleanedText.trim()
+    return (cleanedText.split('</think>').pop() || '').trim();
   }
 
   const downloadChatHtml = () => {

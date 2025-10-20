@@ -10,19 +10,11 @@ const cleanBrokenHtml = (htmlString: string) => {
   }
   
   let cleanedText = htmlString
-    // Decode HTML entities first
     .replace(/[\r\n]+/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    // Fix broken HTML tags with spaces
-    .replace(/\s*<\s*/g, '<')
-    .replace(/\s*>\s*/g, '>')
+    .replace(/```html/g, '')
+    .replace(/```/g, '')
 
-  return cleanedText.trim()
+  return (cleanedText.split('</think>').pop() || '').trim();
 }
 
 export function HtmlRenderer({ content }: HtmlRendererProps) {
