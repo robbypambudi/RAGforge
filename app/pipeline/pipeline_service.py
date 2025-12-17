@@ -3,6 +3,7 @@ from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from loguru import logger
 from pypdf import PdfReader
+from docx import Document
 
 from app.core.config import settings
 from app.models.files import Files
@@ -23,6 +24,11 @@ def read_file(file_path: str, file_type: str):
             for page in reader.pages:
                 text += page.extract_text()
             return text
+        
+        elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or file_path.endswith(".docx"):
+            doc = Document(file_path)
+            return "\n".join([line.text for line in doc.paragraphs])
+        
         elif file_type.startswith("text/"):
             with open(file_path, "r", encoding="utf-8") as f:
                 return f.read()
