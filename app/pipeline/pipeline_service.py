@@ -3,7 +3,15 @@ from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from loguru import logger
 from pypdf import PdfReader
-from docx import Document
+import pypandoc
+
+# Ensure pandoc is available
+try:
+    pypandoc.get_pandoc_version()
+except OSError:
+    logger.warning("Pandoc not found. Downloading pandoc...")
+    pypandoc.download_pandoc()
+    logger.info("Pandoc downloaded successfully")
 
 from app.core.config import settings
 from app.models.files import Files
@@ -26,8 +34,7 @@ def read_file(file_path: str, file_type: str):
             return text
         
         elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" or file_path.endswith(".docx"):
-            doc = Document(file_path)
-            return "\n".join([line.text for line in doc.paragraphs])
+            return pypandoc.convert_file(file_path, 'md')
         
         elif file_type.startswith("text/"):
             with open(file_path, "r", encoding="utf-8") as f:
